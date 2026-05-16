@@ -14,14 +14,16 @@
   import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // ▼▼▼ REMPLACEZ CE BLOC PAR VOS VRAIES CLÉS (Étape 4 du guide) ▼▼▼
   const firebaseConfig = {
-  apiKey: "AIzaSyAbjeVvfkGzwfKsQUtFfeeRtUJKOfy_3cs",
-  authDomain: "videovault-f82dd.firebaseapp.com",
-  projectId: "videovault-f82dd",
-  storageBucket: "videovault-f82dd.firebasestorage.app",
-  messagingSenderId: "1036130775845",
-  appId: "1:1036130775845:web:44f57ad4f36009202220cc"
-};
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT_ID.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT_ID.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
+  // ▲▲▲ FIN DU BLOC À REMPLACER ▲▲▲
 
   // ── Init Firebase ──────────────────────────────────────────────
   let app, db;
@@ -607,7 +609,12 @@ function buildCatFilter() {
 function extractId(url) {
   try {
     const u = new URL(url);
+    // youtu.be/VIDEO_ID
     if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('?')[0];
+    // youtube.com/shorts/VIDEO_ID
+    const shortsMatch = u.pathname.match(/\/shorts\/([^/?]+)/);
+    if (shortsMatch) return shortsMatch[1];
+    // youtube.com/watch?v=VIDEO_ID
     return u.searchParams.get('v') || null;
   } catch { return null; }
 }
