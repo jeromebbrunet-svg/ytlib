@@ -1800,7 +1800,10 @@
             .filter((f) => (f.parentId || "") === (pid || ""))
             .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
             .forEach((f) => {
-              const cnt = S.videos.filter((v) => v.folderId === f.id).length;
+              const subIds = new Set([f.id, ...descFolders(f.id, S.folders)]);
+              const cnt = S.videos.filter((v) =>
+                subIds.has(v.folderId || ""),
+              ).length;
               const node = mkNode(f.name, f.id, cnt, lvl);
               container.appendChild(node);
               if (lvl < 2) {
@@ -1905,8 +1908,13 @@
         const sort = gi("sortSel").value;
         const fid = S.curFolder;
 
+        // Dossier courant + tous ses sous-dossiers (récursif)
+        const visibleFids =
+          fid === null ? null : new Set([fid, ...descFolders(fid, S.folders)]);
+
         let list = S.videos.filter((vid) => {
-          const inF = fid === null || (vid.folderId || "") === fid;
+          const inF =
+            visibleFids === null || visibleFids.has(vid.folderId || "");
           const mQ =
             !q ||
             (vid.title || "").toLowerCase().includes(q) ||
