@@ -356,13 +356,23 @@
         transition: color 0.15s;
         padding: 2px 4px;
         border-radius: 4px;
+        font-weight: 400;
       }
       .bc:hover {
         color: var(--text);
         background: var(--hover);
       }
+      .bc-active {
+        color: var(--text);
+        font-weight: 500;
+        cursor: default;
+      }
+      .bc-active:hover {
+        background: transparent;
+      }
       .bc-sep {
-        opacity: 0.3;
+        opacity: 0.4;
+        font-weight: 300;
       }
 
       /* ── TOOLBAR ── */
@@ -1352,6 +1362,14 @@
               />
             </svg>
           </button>
+          <button
+            class="btn btn-g btn-sm"
+            onclick="openModal('modalAccessCode')"
+            title="Accéder à une bibliothèque partagée"
+            id="btnAccessCode"
+          >
+            🔑 Code
+          </button>
           <button class="btn btn-g btn-sm" onclick="doLogout()">
             Déconnexion
           </button>
@@ -1401,7 +1419,7 @@
           </div>
 
           <div class="breadcrumb" id="breadcrumb">
-            <span class="bc" onclick="nav(null)">📁 Tout</span>
+            <span class="bc bc-active" onclick="nav(null)">Bibliothèque</span>
           </div>
 
           <div class="toolbar">
@@ -1672,6 +1690,55 @@
       <span id="toastMsg"></span>
     </div>
 
+    <!-- ══ MODAL ACCÈS CODE PARTAGÉ ══ -->
+    <div class="overlay" id="modalAccessCode">
+      <div class="modal" style="width: 380px">
+        <div class="modal-t">Accéder à une bibliothèque partagée</div>
+        <p
+          style="
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.65;
+          "
+        >
+          Entrez un code à 8 caractères reçu d'un autre utilisateur. Vous
+          accéderez à sa bibliothèque en lecture seule dans un nouvel onglet.
+        </p>
+        <div class="field" style="margin-bottom: 14px">
+          <label>Code de partage</label>
+          <input
+            type="text"
+            id="inAppCodeInput"
+            placeholder="AB12CD34"
+            maxlength="8"
+            style="
+              text-transform: uppercase;
+              letter-spacing: 4px;
+              text-align: center;
+              font-size: 1.1rem;
+            "
+            onkeydown="if (event.key === 'Enter') openSharedLib();"
+          />
+        </div>
+        <div
+          id="inAppCodeErr"
+          style="
+            font-size: 0.78rem;
+            color: var(--accent);
+            min-height: 16px;
+            margin-bottom: 8px;
+          "
+        ></div>
+        <div class="ma">
+          <button class="btn btn-g" onclick="closeModal('modalAccessCode')">
+            Annuler
+          </button>
+          <button class="btn btn-b" onclick="openSharedLib()">Accéder</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ DRAWER MOBILE ══ -->
     <div id="mobileNav" onclick="closeMobileNav(event)">
       <div id="mobileDrawer">
@@ -1877,10 +1944,40 @@
 
         // Connexion automatique si session Firebase active
         onAuthStateChanged(auth, (user) => {
+          // Vérifier d'abord si un ?sharedCode= est dans l'URL
+          const urlCode = new URLSearchParams(window.location.search).get(
+            "sharedCode",
+          );
+          if (urlCode && !S.shareMode && !user) {
+            // Mode partage sans compte : on simule accessCode()
+            window._FB
+              .getCode(urlCode.toUpperCase())
+              .then((sc) => {
+                if (!sc) {
+                  showAuth();
+                  return;
+                }
+                S.shareMode = true;
+                S.shareOwner = sc.ownerUid;
+                S.uid = sc.ownerUid;
+                S.email = null;
+                gi("btnAddVideo").style.display = "none";
+                gi("btnAddFolder").style.display = "none";
+                gi("mDrawerAddVideo").style.display = "none";
+                gi("mDrawerAddFolder").style.display = "none";
+                showApp();
+                loadAll(sc).then(() =>
+                  toast("Bibliothèque partagée chargée", "info"),
+                );
+              })
+              .catch(() => showAuth());
+            return;
+          }
           if (user) {
             S.uid = user.uid;
             S.email = user.email;
             showApp();
+            // Si on est aussi porteur d'un code partagé dans l'URL, l'ignorer (on est l'owner)
             loadAll();
           } else if (!S.shareMode) {
             showAuth();
@@ -2051,6 +2148,10 @@
           : "Connecté";
         // Badge "lecture seule" dans le header
         gi("sharedBadge").style.display = S.shareMode ? "inline-flex" : "none";
+        gi("btnAccessCode").style.display = S.shareMode
+          ? "none"
+          : "inline-flex";
+        gi("btnShareHdr").style.display = S.shareMode ? "none" : "inline-flex";
         // Hamburger visible sur mobile
         gi("btnHamburger").style.display = "flex";
       }
@@ -2101,7 +2202,9 @@
       function _buildTreeInto(containerId) {
         const t = gi(containerId);
         t.innerHTML = "";
-        t.appendChild(mkNode("Tout", null, S.videos.length, 0, containerId));
+        t.appendChild(
+          mkNode("Bibliothèque", null, S.videos.length, 0, containerId),
+        );
         (function recurse(pid, container, lvl) {
           S.folders
             .filter((f) => (f.parentId || "") === (pid || ""))
@@ -2183,7 +2286,7 @@
         bc.innerHTML = "";
         const add = (lbl, fid) => {
           const s = document.createElement("span");
-          s.className = "bc";
+          s.className = "bc" + (S.curFolder === fid ? " bc-active" : "");
           s.textContent = lbl;
           s.onclick = () => nav(fid);
           bc.appendChild(s);
@@ -2194,14 +2297,14 @@
           s.textContent = " / ";
           bc.appendChild(s);
         };
-        add("📁 Tout", null);
+        add("Bibliothèque", null);
         if (S.curFolder) {
           (function getPath(id) {
             const f = S.folders.find((x) => x.id === id);
             if (!f) return;
             if (f.parentId) getPath(f.parentId);
             sep();
-            add("📂 " + f.name, f.id);
+            add(f.name, f.id);
           })(S.curFolder);
         }
       }
@@ -2757,6 +2860,33 @@
         _importData = null;
         gi("importBtn").textContent = "Importer";
         toast(`${imported} vidéo(s) importée(s) ✓`, "ok");
+      }
+
+      // ── ACCÈS CODE PARTAGÉ (depuis l'app) ───────────────────────
+      async function openSharedLib() {
+        const code = gi("inAppCodeInput").value.trim().toUpperCase();
+        const errEl = gi("inAppCodeErr");
+        errEl.textContent = "";
+        if (code.length !== 8) {
+          errEl.textContent = "Code invalide — 8 caractères requis";
+          return;
+        }
+        try {
+          const sc = await window._FB.getCode(code);
+          if (!sc) {
+            errEl.textContent = "Code introuvable ou révoqué.";
+            return;
+          }
+          // Ouvre dans un nouvel onglet avec le code en paramètre URL
+          const url =
+            window.location.href.split("?")[0] + "?sharedCode=" + code;
+          window.open(url, "_blank", "noopener");
+          closeModal("modalAccessCode");
+          gi("inAppCodeInput").value = "";
+          toast("Bibliothèque ouverte dans un nouvel onglet", "info");
+        } catch (e) {
+          errEl.textContent = "Erreur : " + e.message;
+        }
       }
 
       // ── MOBILE NAV ────────────────────────────────────────────
