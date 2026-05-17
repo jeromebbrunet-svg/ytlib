@@ -990,12 +990,115 @@
         line-height: 1.6;
       }
 
+      /* ── MOBILE NAV ── */
+      #mobileNav {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 300;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+      }
+      #mobileNav.on {
+        display: flex;
+      }
+      #mobileDrawer {
+        width: min(280px, 85vw);
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        animation: slideIn 0.22s ease;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(-100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+      #mobileDrawer .aside-top {
+        padding: 0.8rem;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      #mobileDrawer .aside-actions {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 0;
+      }
+      #mobileDrawer .sidebar-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+      }
+      .shared-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        background: rgba(72, 149, 239, 0.15);
+        border: 1px solid rgba(72, 149, 239, 0.3);
+        color: var(--blue);
+      }
+
+      /* ── CARD MOBILE : titre toujours visible ── */
+      @media (hover: none), (max-width: 640px) {
+        .ca {
+          opacity: 1 !important;
+        }
+        .play-icon {
+          opacity: 1 !important;
+          transform: scale(1) !important;
+        }
+        .play-ring {
+          background: rgba(0, 0, 0, 0.25) !important;
+        }
+        .card-title {
+          -webkit-line-clamp: unset;
+          overflow: visible;
+          display: block;
+        }
+      }
+
+      /* ── TREE : chevron collapse ── */
+      .ti-chevron {
+        font-size: 0.7rem;
+        color: var(--muted);
+        flex-shrink: 0;
+        transition: transform 0.2s;
+        cursor: pointer;
+        padding: 2px 4px;
+        line-height: 1;
+      }
+      .ti-chevron.open {
+        transform: rotate(90deg);
+      }
+      .tree-children {
+        overflow: hidden;
+      }
+      .tree-children.collapsed {
+        display: none;
+      }
+
       @media (max-width: 640px) {
         aside {
           display: none;
         }
         .mg2 {
           grid-template-columns: 1fr;
+        }
+        .hdr-r .user-chip {
+          display: none;
+        }
+        .hdr-r .status-row {
+          display: none;
         }
       }
     </style>
@@ -1120,7 +1223,28 @@
     <!-- ══════════ APP SHELL ══════════ -->
     <div id="appShell">
       <header>
-        <div class="logo">VideoVault</div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <button
+            class="btn-ic"
+            id="btnHamburger"
+            onclick="toggleMobileNav()"
+            style="display: none"
+            title="Menu"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              style="width: 16px; height: 16px; fill: currentColor"
+            >
+              <path
+                d="M2.5 12a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm0-4a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm0-4a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11z"
+              />
+            </svg>
+          </button>
+          <div class="logo">VideoVault</div>
+          <span class="shared-badge" id="sharedBadge" style="display: none"
+            >👁 Lecture seule</span
+          >
+        </div>
         <div class="hdr-r">
           <div class="status-row">
             <div class="dot"></div>
@@ -1129,6 +1253,20 @@
             >
           </div>
           <div class="user-chip" id="userChip"></div>
+          <button
+            class="btn-ic"
+            title="Importer JSON"
+            onclick="openModal('modalImport')"
+          >
+            <svg viewBox="0 0 16 16">
+              <path
+                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"
+              />
+              <path
+                d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"
+              />
+            </svg>
+          </button>
           <button class="btn-ic" title="Exporter JSON" onclick="exportJSON()">
             <svg viewBox="0 0 16 16">
               <path
@@ -1471,6 +1609,102 @@
       <span id="toastMsg"></span>
     </div>
 
+    <!-- ══ DRAWER MOBILE ══ -->
+    <div id="mobileNav" onclick="closeMobileNav(event)">
+      <div id="mobileDrawer">
+        <div class="aside-top">
+          <div class="aside-actions">
+            <button
+              class="btn btn-p btn-sm"
+              style="flex: 1; justify-content: center"
+              onclick="
+                openVideoModal();
+                closeMobileNav();
+              "
+              id="mDrawerAddVideo"
+            >
+              + Vidéo
+            </button>
+            <button
+              class="btn btn-g btn-sm"
+              onclick="
+                openFolderModal();
+                closeMobileNav();
+              "
+              id="mDrawerAddFolder"
+              style="padding: 5px 10px"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                style="width: 13px; height: 13px; fill: currentColor"
+              >
+                <path
+                  d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z"
+                />
+              </svg>
+              Dossier
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-scroll" id="mobileTree"></div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL IMPORT JSON ══ -->
+    <div class="overlay" id="modalImport">
+      <div class="modal" style="width: 460px">
+        <div class="modal-t">Importer un fichier JSON</div>
+        <p
+          style="
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.65;
+          "
+        >
+          Sélectionnez un export VideoVault (.json). Les vidéos et dossiers
+          seront ajoutés à votre bibliothèque. Les doublons (même URL) sont
+          ignorés.
+        </p>
+        <div class="field" style="margin-bottom: 14px">
+          <label>Fichier JSON</label>
+          <input
+            type="file"
+            id="importFile"
+            accept=".json"
+            style="cursor: pointer"
+          />
+        </div>
+        <div
+          id="importPreview"
+          style="
+            display: none;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.7;
+          "
+        ></div>
+        <div class="ma">
+          <button class="btn btn-g" onclick="closeModal('modalImport')">
+            Annuler
+          </button>
+          <button
+            class="btn btn-p"
+            id="importBtn"
+            onclick="doImport()"
+            disabled
+          >
+            Importer
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ══════════════════════════════════════════════════════
      FIREBASE MODULE  — placé en fin de body pour que le DOM
      soit prêt avant que onAuthStateChanged ne se déclenche
@@ -1608,6 +1842,7 @@
         ctxVid: null,
         shareMode: false,
         shareOwner: null,
+        collapsed: new Set(),
       };
 
       // ── ONGLETS AUTH ─────────────────────────────────────────
@@ -1707,6 +1942,8 @@
           gi("btnAddVideo").style.display = "none";
           gi("btnAddFolder").style.display = "none";
           gi("btnShareHdr").style.display = "none";
+          gi("mDrawerAddVideo").style.display = "none";
+          gi("mDrawerAddFolder").style.display = "none";
           showApp();
           await loadAll(sc);
           toast("Bibliothèque partagée chargée", "info");
@@ -1745,12 +1982,14 @@
       function showApp() {
         gi("authScreen").style.display = "none";
         gi("appShell").classList.add("on");
-        gi("userChip").textContent = S.shareMode
-          ? "👁 Lecture seule"
-          : S.email || "";
+        gi("userChip").textContent = S.email || "";
         gi("stTxt").textContent = S.shareMode
           ? "Bibliothèque partagée"
           : "Connecté";
+        // Badge "lecture seule" dans le header
+        gi("sharedBadge").style.display = S.shareMode ? "inline-flex" : "none";
+        // Hamburger visible sur mobile
+        gi("btnHamburger").style.display = "flex";
       }
 
       // ── CHARGEMENT DONNÉES ───────────────────────────────────
@@ -1792,9 +2031,14 @@
       }
 
       function buildTree() {
-        const t = gi("tree");
+        _buildTreeInto("tree");
+        _buildTreeInto("mobileTree");
+      }
+
+      function _buildTreeInto(containerId) {
+        const t = gi(containerId);
         t.innerHTML = "";
-        t.appendChild(mkNode("Tout", null, S.videos.length, 0));
+        t.appendChild(mkNode("Tout", null, S.videos.length, 0, containerId));
         (function recurse(pid, container, lvl) {
           S.folders
             .filter((f) => (f.parentId || "") === (pid || ""))
@@ -1804,32 +2048,64 @@
               const cnt = S.videos.filter((v) =>
                 subIds.has(v.folderId || ""),
               ).length;
-              const node = mkNode(f.name, f.id, cnt, lvl);
+              const hasChildren =
+                S.folders.some((x) => x.parentId === f.id) && lvl < 2;
+              const node = mkNode(
+                f.name,
+                f.id,
+                cnt,
+                lvl,
+                containerId,
+                hasChildren,
+              );
               container.appendChild(node);
-              if (lvl < 2) {
+              if (hasChildren) {
                 const sub = document.createElement("div");
-                sub.className = "tree-children";
+                sub.className =
+                  "tree-children" + (S.collapsed.has(f.id) ? " collapsed" : "");
+                sub.id = "tc_" + containerId + "_" + f.id;
                 recurse(f.id, sub, lvl + 1);
-                if (sub.children.length) container.appendChild(sub);
+                container.appendChild(sub);
               }
             });
         })(null, t, 0);
       }
 
-      function mkNode(label, fid, cnt, lvl) {
+      function mkNode(label, fid, cnt, lvl, containerId, hasChildren) {
         const el = document.createElement("div");
         el.className = "tree-item" + (S.curFolder === fid ? " active" : "");
+        const chevron = hasChildren
+          ? `<span class="ti-chevron ${S.collapsed.has(fid) ? "" : "open"}" onclick="toggleCollapse(event,'${fid}','${containerId}')">›</span>`
+          : "";
         el.innerHTML = `
+    ${chevron}
     <span style="font-size:.9rem;flex-shrink:0;">${fid ? "📂" : "📁"}</span>
     <span class="ti-label">${esc(label)}</span>
     <span class="ti-count">${cnt}</span>
     ${fid && !S.shareMode ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ""}
   `;
         el.addEventListener("click", (e) => {
-          if (e.target.closest(".ti-btn")) return;
+          if (e.target.closest(".ti-btn") || e.target.closest(".ti-chevron"))
+            return;
           nav(fid);
+          if (containerId === "mobileTree") closeMobileNav();
         });
         return el;
+      }
+
+      function toggleCollapse(e, fid, containerId) {
+        e.stopPropagation();
+        if (S.collapsed.has(fid)) S.collapsed.delete(fid);
+        else S.collapsed.add(fid);
+        // Toggle both trees simultaneously
+        ["tree", "mobileTree"].forEach((cid) => {
+          const sub = gi("tc_" + cid + "_" + fid);
+          const chev = document.querySelector(
+            `#${cid} .ti-chevron[onclick*="${fid}"]`,
+          );
+          if (sub) sub.classList.toggle("collapsed", S.collapsed.has(fid));
+          if (chev) chev.classList.toggle("open", !S.collapsed.has(fid));
+        });
       }
 
       function nav(fid) {
@@ -2310,6 +2586,123 @@
         a.download = `videovault-${new Date().toISOString().substring(0, 10)}.json`;
         a.click();
         toast("Export téléchargé ✓", "ok");
+      }
+
+      // ── IMPORT JSON ───────────────────────────────────────────
+      let _importData = null;
+
+      gi("importFile") &&
+        gi("importFile").addEventListener("change", function () {
+          _importData = null;
+          gi("importBtn").disabled = true;
+          gi("importPreview").style.display = "none";
+          const file = this.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              const vids = data.videos || [];
+              const fols = data.folders || [];
+              // Dédoublonnage par URL
+              const existingUrls = new Set(S.videos.map((v) => v.url));
+              const newVids = vids.filter(
+                (v) => v.url && !existingUrls.has(v.url),
+              );
+              const existingFolNames = new Set(S.folders.map((f) => f.name));
+              const newFols = fols.filter(
+                (f) => f.name && !existingFolNames.has(f.name),
+              );
+              _importData = { newVids, newFols, allFols: fols };
+              gi("importPreview").style.display = "block";
+              gi("importPreview").innerHTML =
+                `<b style="color:var(--text);">${newVids.length}</b> vidéo(s) à importer (${vids.length - newVids.length} doublon(s) ignoré(s))<br>` +
+                `<b style="color:var(--text);">${newFols.length}</b> dossier(s) à importer`;
+              gi("importBtn").disabled =
+                newVids.length === 0 && newFols.length === 0;
+            } catch (err) {
+              gi("importPreview").style.display = "block";
+              gi("importPreview").textContent =
+                "❌ Fichier JSON invalide : " + err.message;
+            }
+          };
+          reader.readAsText(file);
+        });
+
+      async function doImport() {
+        if (!_importData) return;
+        const btn = gi("importBtn");
+        btn.disabled = true;
+        btn.textContent = "Import…";
+
+        const { newVids, newFols, allFols } = _importData;
+
+        // Map old folder IDs → new IDs
+        const folderIdMap = {};
+
+        // Import dossiers (racine d'abord, puis enfants)
+        const sorted = [...newFols].sort((a, b) => {
+          const da = allFols.find((x) => x.id === a.parentId) ? 1 : 0;
+          const db = allFols.find((x) => x.id === b.parentId) ? 1 : 0;
+          return da - db;
+        });
+
+        for (const f of sorted) {
+          const newParent = folderIdMap[f.parentId] || "";
+          try {
+            const ref = await window._FB.addFolder(S.uid, {
+              name: f.name,
+              parentId: newParent,
+            });
+            folderIdMap[f.id] = ref.id;
+            S.folders.push({ id: ref.id, name: f.name, parentId: newParent });
+          } catch (e) {
+            console.warn("Folder import error", e);
+          }
+        }
+
+        // Import vidéos
+        let imported = 0;
+        for (const v of newVids) {
+          const newFid = folderIdMap[v.folderId] || v.folderId || "";
+          const data = {
+            url: v.url,
+            ytId: v.ytId || extractYtId(v.url) || "",
+            title: v.title || "Sans titre",
+            category: v.category || "",
+            notes: v.notes || "",
+            folderId: newFid,
+            publishedAt: v.publishedAt || null,
+          };
+          try {
+            const ref = await window._FB.addVideo(S.uid, data);
+            S.videos.unshift({
+              id: ref.id,
+              ...data,
+              addedAt: new Date().toISOString(),
+            });
+            imported++;
+          } catch (e) {
+            console.warn("Video import error", e);
+          }
+        }
+
+        buildTree();
+        renderGrid();
+        closeModal("modalImport");
+        gi("importFile").value = "";
+        _importData = null;
+        gi("importBtn").textContent = "Importer";
+        toast(`${imported} vidéo(s) importée(s) ✓`, "ok");
+      }
+
+      // ── MOBILE NAV ────────────────────────────────────────────
+      function toggleMobileNav() {
+        gi("mobileNav").classList.toggle("on");
+      }
+      function closeMobileNav(e) {
+        if (!e || e.target === gi("mobileNav"))
+          gi("mobileNav").classList.remove("on");
       }
 
       // ── MODALS ───────────────────────────────────────────────
