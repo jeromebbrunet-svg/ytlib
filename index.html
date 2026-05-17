@@ -1,3000 +1,1547 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VideoVault v2</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg: #080910;
-        --surface: #0e1018;
-        --card: #13151e;
-        --border: #1c1f2b;
-        --accent: #e63946;
-        --gold: #f4a261;
-        --blue: #4895ef;
-        --green: #4ade80;
-        --text: #e6e3de;
-        --muted: #565b70;
-        --hover: #181b26;
-        --radius: 10px;
-        --sidebar: 240px;
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: "DM Sans", sans-serif;
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image:
-          linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-          linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.012) 1px,
-            transparent 1px
-          );
-        background-size: 44px 44px;
-        pointer-events: none;
-        z-index: 0;
-      }
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: 3px;
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoVault v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080910;--surface:#0e1018;--card:#13151e;--border:#1c1f2b;
+  --accent:#e63946;--gold:#f4a261;--blue:#4895ef;--green:#4ade80;
+  --text:#e6e3de;--muted:#565b70;--hover:#181b26;--radius:10px;--sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-      /* ══ AUTH ══ */
-      #authScreen {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg);
-      }
-      .auth-box {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 2.5rem 2rem;
-        width: 390px;
-        max-width: 95vw;
-        animation: fadeUp 0.3s ease;
-      }
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(14px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .auth-logo {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: 2.2rem;
-        letter-spacing: 4px;
-        background: linear-gradient(120deg, var(--accent), var(--gold));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-align: center;
-        margin-bottom: 0.3rem;
-      }
-      .auth-sub {
-        text-align: center;
-        font-size: 0.72rem;
-        color: var(--muted);
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        margin-bottom: 1.6rem;
-      }
-      .auth-tabs {
-        display: flex;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 1.4rem;
-      }
-      .auth-tab {
-        flex: 1;
-        padding: 8px 4px;
-        background: transparent;
-        border: none;
-        color: var(--muted);
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.78rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .auth-tab.active {
-        background: var(--accent);
-        color: #fff;
-      }
-      .auth-panel {
-        display: none;
-      }
-      .auth-panel.active {
-        display: block;
-      }
-      .auth-field {
-        margin-bottom: 12px;
-      }
-      .auth-field label {
-        display: block;
-        font-size: 0.68rem;
-        font-weight: 500;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 5px;
-      }
-      .auth-err {
-        font-size: 0.78rem;
-        color: var(--accent);
-        margin-bottom: 10px;
-        min-height: 16px;
-        text-align: center;
-      }
-      .auth-hint {
-        font-size: 0.75rem;
-        color: var(--muted);
-        line-height: 1.6;
-        margin-bottom: 12px;
-      }
-      .auth-hint code {
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 3px;
-        padding: 1px 5px;
-        color: var(--gold);
-      }
-      .auth-row {
-        display: flex;
-        gap: 8px;
-        align-items: flex-end;
-      }
-      .auth-row .auth-field {
-        flex: 1;
-        margin-bottom: 0;
-      }
+/* ══ AUTH ══ */
+#authScreen{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;width:390px;max-width:95vw;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:4px;background:linear-gradient(120deg,var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:.3rem;}
+.auth-sub{text-align:center;font-size:.72rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.6rem;}
+.auth-tabs{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.4rem;}
+.auth-tab{flex:1;padding:8px 4px;background:transparent;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .2s;}
+.auth-tab.active{background:var(--accent);color:#fff;}
+.auth-panel{display:none;}
+.auth-panel.active{display:block;}
+.auth-field{margin-bottom:12px;}
+.auth-field label{display:block;font-size:.68rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.auth-err{font-size:.78rem;color:var(--accent);margin-bottom:10px;min-height:16px;text-align:center;}
+.auth-hint{font-size:.75rem;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.auth-hint code{background:rgba(255,255,255,.06);border-radius:3px;padding:1px 5px;color:var(--gold);}
+.auth-row{display:flex;gap:8px;align-items:flex-end;}
+.auth-row .auth-field{flex:1;margin-bottom:0;}
 
-      /* ══ APP SHELL ══ */
-      #appShell {
-        display: none;
-        height: 100vh;
-        flex-direction: column;
-      }
-      #appShell.on {
-        display: flex;
-      }
+/* ══ APP SHELL ══ */
+#appShell{display:none;height:100vh;flex-direction:column;}
+#appShell.on{display:flex;}
 
-      /* ── HEADER ── */
-      header {
-        height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 1.2rem;
-        border-bottom: 1px solid var(--border);
-        background: rgba(8, 9, 16, 0.92);
-        backdrop-filter: blur(20px);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        flex-shrink: 0;
-      }
-      .logo {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: 1.5rem;
-        letter-spacing: 3px;
-        background: linear-gradient(120deg, var(--accent), var(--gold));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        user-select: none;
-      }
-      .hdr-r {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .user-chip {
-        font-size: 0.72rem;
-        color: var(--muted);
-        padding: 4px 10px;
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        max-width: 180px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .status-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--green);
-        box-shadow: 0 0 7px #4ade8077;
-      }
+/* ── HEADER ── */
+header{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;border-bottom:1px solid var(--border);background:rgba(8,9,16,.92);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;flex-shrink:0;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:3px;background:linear-gradient(120deg,var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;user-select:none;}
+.hdr-r{display:flex;gap:8px;align-items:center;}
+.user-chip{font-size:.72rem;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:20px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.status-row{display:flex;align-items:center;gap:6px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px #4ade8077;}
 
-      /* ── LAYOUT ── */
-      .app-body {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-        position: relative;
-        z-index: 1;
-      }
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1;}
 
-      /* ── SIDEBAR ── */
-      aside {
-        width: var(--sidebar);
-        flex-shrink: 0;
-        border-right: 1px solid var(--border);
-        background: var(--surface);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .aside-top {
-        padding: 0.8rem;
-        flex-shrink: 0;
-        border-bottom: 1px solid var(--border);
-      }
-      .aside-actions {
-        display: flex;
-        gap: 6px;
-      }
-      .sidebar-scroll {
-        flex: 1;
-        overflow-y: auto;
-        padding: 0.5rem;
-      }
-      .tree-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 8px;
-        border-radius: 7px;
-        cursor: pointer;
-        transition: background 0.15s;
-        font-size: 0.82rem;
-      }
-      .tree-item:hover {
-        background: var(--hover);
-      }
-      .tree-item.active {
-        background: rgba(230, 57, 70, 0.12);
-        color: var(--accent);
-      }
-      .ti-label {
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .ti-count {
-        font-size: 0.62rem;
-        color: var(--muted);
-        flex-shrink: 0;
-      }
-      .ti-btn {
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        opacity: 0;
-        color: var(--muted);
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        flex-shrink: 0;
-        font-size: 0.9rem;
-        transition: all 0.15s;
-      }
-      .tree-item:hover .ti-btn {
-        opacity: 1;
-      }
-      .ti-btn:hover {
-        background: var(--border);
-        color: var(--text);
-      }
-      .tree-children {
-        padding-left: 12px;
-      }
+/* ── SIDEBAR ── */
+aside{width:var(--sidebar);flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;}
+.aside-top{padding:.8rem;flex-shrink:0;border-bottom:1px solid var(--border);}
+.aside-actions{display:flex;gap:6px;}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:.5rem;}
+.tree-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;cursor:pointer;transition:background .15s;font-size:.82rem;}
+.tree-item:hover{background:var(--hover);}
+.tree-item.active{background:rgba(230,57,70,.12);color:var(--accent);}
+.ti-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ti-count{font-size:.62rem;color:var(--muted);flex-shrink:0;}
+.ti-btn{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:4px;opacity:0;color:var(--muted);background:transparent;border:none;cursor:pointer;flex-shrink:0;font-size:.9rem;transition:all .15s;}
+.tree-item:hover .ti-btn{opacity:1;}
+.ti-btn:hover{background:var(--border);color:var(--text);}
+.tree-children{padding-left:12px;}
 
-      /* ── MAIN ── */
-      .main-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 0.55rem 1.2rem;
-        font-size: 0.76rem;
-        color: var(--muted);
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        flex-wrap: wrap;
-      }
-      .bc {
-        cursor: pointer;
-        transition: color 0.15s;
-        padding: 2px 4px;
-        border-radius: 4px;
-        font-weight: 400;
-      }
-      .bc:hover {
-        color: var(--text);
-        background: var(--hover);
-      }
-      .bc-active {
-        color: var(--text);
-        font-weight: 500;
-        cursor: default;
-      }
-      .bc-active:hover {
-        background: transparent;
-      }
-      .bc-sep {
-        opacity: 0.4;
-        font-weight: 300;
-      }
+/* ── MAIN ── */
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.breadcrumb{display:flex;align-items:center;gap:5px;padding:.55rem 1.2rem;font-size:.76rem;color:var(--muted);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.bc{cursor:pointer;transition:color .15s;padding:2px 4px;border-radius:4px;font-weight:400;}
+.bc:hover{color:var(--text);background:var(--hover);}
+.bc-active{color:var(--text);font-weight:500;cursor:default;}
+.bc-active:hover{background:transparent;}
+.bc-sep{opacity:.4;font-weight:300;}
 
-      /* ── TOOLBAR ── */
-      .toolbar {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        padding: 0.8rem 1.2rem;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        flex-wrap: wrap;
-      }
-      .sw {
-        position: relative;
-        flex: 1;
-        min-width: 150px;
-      }
-      .sw svg {
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 14px;
-        height: 14px;
-        fill: var(--muted);
-        pointer-events: none;
-      }
-      .sw input {
-        padding-left: 34px;
-      }
-      .sort-sel {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 7px 10px;
-        color: var(--text);
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.78rem;
-        cursor: pointer;
-        outline: none;
-      }
-      .cpill {
-        font-size: 0.72rem;
-        color: var(--muted);
-        white-space: nowrap;
-      }
-      .cpill b {
-        color: var(--text);
-      }
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:10px;align-items:center;padding:.8rem 1.2rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.sw{position:relative;flex:1;min-width:150px;}
+.sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;fill:var(--muted);pointer-events:none;}
+.sw input{padding-left:34px;}
+.sort-sel{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;outline:none;}
+.cpill{font-size:.72rem;color:var(--muted);white-space:nowrap;}
+.cpill b{color:var(--text);}
 
-      /* ── GRID ── */
-      .vgrid {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
-        gap: 12px;
-        align-content: start;
-      }
+/* ── GRID ── */
+.vgrid{flex:1;overflow-y:auto;padding:1rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px;align-content:start;}
 
-      /* ── CARD ── */
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        overflow: hidden;
-        transition:
-          transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-          box-shadow 0.22s,
-          border-color 0.22s;
-        animation: rise 0.28s ease both;
-      }
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .card:hover {
-        transform: translateY(-4px);
-        border-color: #252839;
-        box-shadow:
-          0 20px 40px rgba(0, 0, 0, 0.55),
-          0 0 0 1px rgba(230, 57, 70, 0.1);
-      }
-      .thumb {
-        position: relative;
-        aspect-ratio: 16/9;
-        background: #0a0b10;
-        overflow: hidden;
-        cursor: pointer;
-      }
-      .thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.35s ease;
-      }
-      .card:hover .thumb img {
-        transform: scale(1.05);
-      }
-      .play-ring {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0);
-        transition: background 0.22s;
-      }
-      .card:hover .play-ring {
-        background: rgba(0, 0, 0, 0.35);
-      }
-      .play-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: var(--accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transform: scale(0.65);
-        transition:
-          opacity 0.2s,
-          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 18px rgba(230, 57, 70, 0.5);
-      }
-      .card:hover .play-icon {
-        opacity: 1;
-        transform: scale(1);
-      }
-      .play-icon svg {
-        width: 16px;
-        height: 16px;
-        fill: #fff;
-        margin-left: 2px;
-      }
-      .cpill2 {
-        position: absolute;
-        top: 7px;
-        left: 7px;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(4px);
-        border-radius: 4px;
-        padding: 2px 7px;
-        font-size: 0.6rem;
-        font-weight: 600;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        color: var(--gold);
-        border: 1px solid rgba(244, 162, 97, 0.2);
-      }
-      .card-body {
-        padding: 10px 12px 11px;
-      }
-      .card-title {
-        font-size: 0.84rem;
-        font-weight: 500;
-        line-height: 1.42;
-        margin-bottom: 7px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-      .card-foot {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .card-date {
-        font-size: 0.64rem;
-        color: var(--muted);
-        flex: 1;
-      }
-      .ca {
-        width: 24px;
-        height: 24px;
-        border-radius: 5px;
-        background: transparent;
-        border: 1px solid transparent;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--muted);
-        opacity: 0;
-        transition: all 0.15s;
-      }
-      .card:hover .ca {
-        opacity: 1;
-      }
-      .ca:hover {
-        background: var(--hover);
-        border-color: var(--border);
-        color: var(--text);
-      }
-      .ca.red:hover {
-        background: rgba(230, 57, 70, 0.15);
-        border-color: rgba(230, 57, 70, 0.3);
-        color: var(--accent);
-      }
-      .ca svg {
-        width: 11px;
-        height: 11px;
-        fill: currentColor;
-      }
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s,border-color .22s;animation:rise .28s ease both;}
+@keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.card:hover{transform:translateY(-4px);border-color:#252839;box-shadow:0 20px 40px rgba(0,0,0,.55),0 0 0 1px rgba(230,57,70,.1);}
+.thumb{position:relative;aspect-ratio:16/9;background:#0a0b10;overflow:hidden;cursor:pointer;}
+.thumb img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease;}
+.card:hover .thumb img{transform:scale(1.05);}
+.play-ring{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);transition:background .22s;}
+.card:hover .play-ring{background:rgba(0,0,0,.35);}
+.play-icon{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.65);transition:opacity .2s,transform .2s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 18px rgba(230,57,70,.5);}
+.card:hover .play-icon{opacity:1;transform:scale(1);}
+.play-icon svg{width:16px;height:16px;fill:#fff;margin-left:2px;}
+.cpill2{position:absolute;top:7px;left:7px;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);border-radius:4px;padding:2px 7px;font-size:.6rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);border:1px solid rgba(244,162,97,.2);}
+.card-body{padding:10px 12px 11px;}
+.card-title{font-size:.84rem;font-weight:500;line-height:1.42;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-foot{display:flex;align-items:center;gap:5px;}
+.card-date{font-size:.64rem;color:var(--muted);flex:1;}
+.ca{width:24px;height:24px;border-radius:5px;background:transparent;border:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);opacity:0;transition:all .15s;}
+.card:hover .ca{opacity:1;}
+.ca:hover{background:var(--hover);border-color:var(--border);color:var(--text);}
+.ca.red:hover{background:rgba(230,57,70,.15);border-color:rgba(230,57,70,.3);color:var(--accent);}
+.ca svg{width:11px;height:11px;fill:currentColor;}
 
-      /* ── EMPTY ── */
-      .empty {
-        grid-column: 1/-1;
-        padding: 5rem 2rem;
-        text-align: center;
-      }
-      .empty-g {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: 4rem;
-        color: var(--border);
-        line-height: 1;
-        margin-bottom: 0.8rem;
-      }
-      .empty-t {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: 1.3rem;
-        letter-spacing: 3px;
-        color: #252833;
-        margin-bottom: 0.4rem;
-      }
-      .empty-s {
-        font-size: 0.8rem;
-        color: var(--muted);
-      }
+/* ── EMPTY ── */
+.empty{grid-column:1/-1;padding:5rem 2rem;text-align:center;}
+.empty-g{font-family:'Bebas Neue',sans-serif;font-size:4rem;color:var(--border);line-height:1;margin-bottom:.8rem;}
+.empty-t{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;color:#252833;margin-bottom:.4rem;}
+.empty-s{font-size:.8rem;color:var(--muted);}
 
-      /* ── MODALS ── */
-      .overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.72);
-        backdrop-filter: blur(5px);
-        z-index: 150;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-      }
-      .overlay.on {
-        display: flex;
-      }
-      .modal {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.8rem;
-        width: 500px;
-        max-width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        animation: fadeUp 0.22s ease;
-      }
-      .modal-t {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: 1.2rem;
-        letter-spacing: 2px;
-        margin-bottom: 1.2rem;
-        color: var(--accent);
-      }
-      .mg {
-        display: grid;
-        gap: 10px;
-        margin-bottom: 12px;
-      }
-      .mg2 {
-        grid-template-columns: 1fr 1fr;
-      }
-      .ma {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        margin-top: 6px;
-      }
-      .field label {
-        display: block;
-        font-size: 0.68rem;
-        font-weight: 500;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 5px;
-      }
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);z-index:150;display:none;align-items:center;justify-content:center;padding:1rem;}
+.overlay.on{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem;width:500px;max-width:100%;max-height:90vh;overflow-y:auto;animation:fadeUp .22s ease;}
+.modal-t{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;margin-bottom:1.2rem;color:var(--accent);}
+.mg{display:grid;gap:10px;margin-bottom:12px;}
+.mg2{grid-template-columns:1fr 1fr;}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
+.field label{display:block;font-size:.68rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
 
-      /* ── SHARE ── */
-      .code-box {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 12px;
-        font-family: monospace;
-        font-size: 1.1rem;
-        letter-spacing: 4px;
-        color: var(--gold);
-        text-align: center;
-        cursor: pointer;
-        transition: border-color 0.2s;
-        margin: 12px 0;
-      }
-      .code-box:hover {
-        border-color: var(--gold);
-      }
-      .share-list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        max-height: 180px;
-        overflow-y: auto;
-        margin-top: 8px;
-      }
-      .share-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 7px;
-        font-size: 0.78rem;
-      }
-      .sr-code {
-        font-family: monospace;
-        font-size: 0.85rem;
-        color: var(--gold);
-        flex: 1;
-        letter-spacing: 2px;
-      }
-      .sr-scope {
-        color: var(--muted);
-        font-size: 0.7rem;
-      }
-      .sr-del {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--muted);
-        transition: color 0.15s;
-        padding: 2px;
-        display: flex;
-      }
-      .sr-del:hover {
-        color: var(--accent);
-      }
+/* ── SHARE ── */
+.code-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:1.1rem;letter-spacing:4px;color:var(--gold);text-align:center;cursor:pointer;transition:border-color .2s;margin:12px 0;}
+.code-box:hover{border-color:var(--gold);}
+.share-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;margin-top:8px;}
+.share-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:7px;font-size:.78rem;}
+.sr-code{font-family:monospace;font-size:.85rem;color:var(--gold);flex:1;letter-spacing:2px;}
+.sr-scope{color:var(--muted);font-size:.7rem;}
+.sr-del{background:transparent;border:none;cursor:pointer;color:var(--muted);transition:color .15s;padding:2px;display:flex;}
+.sr-del:hover{color:var(--accent);}
 
-      /* ── CTX MENU ── */
-      .ctx {
-        position: fixed;
-        z-index: 500;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 9px;
-        padding: 5px;
-        min-width: 165px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-        display: none;
-        animation: fadeUp 0.15s ease;
-      }
-      .ctx.on {
-        display: block;
-      }
-      .ctx-item {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        padding: 7px 10px;
-        border-radius: 6px;
-        font-size: 0.82rem;
-        cursor: pointer;
-        color: var(--text);
-        background: transparent;
-        border: none;
-        width: 100%;
-        text-align: left;
-        transition: background 0.12s;
-      }
-      .ctx-item:hover {
-        background: var(--hover);
-      }
-      .ctx-item.red {
-        color: var(--accent);
-      }
-      .ctx-item svg {
-        width: 13px;
-        height: 13px;
-        fill: currentColor;
-        opacity: 0.8;
-      }
-      .ctx-sep {
-        height: 1px;
-        background: var(--border);
-        margin: 3px 0;
-      }
+/* ── CTX MENU ── */
+.ctx{position:fixed;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:5px;min-width:165px;box-shadow:0 12px 30px rgba(0,0,0,.5);display:none;animation:fadeUp .15s ease;}
+.ctx.on{display:block;}
+.ctx-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font-size:.82rem;cursor:pointer;color:var(--text);background:transparent;border:none;width:100%;text-align:left;transition:background .12s;}
+.ctx-item:hover{background:var(--hover);}
+.ctx-item.red{color:var(--accent);}
+.ctx-item svg{width:13px;height:13px;fill:currentColor;opacity:.8;}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0;}
 
-      /* ── BUTTONS ── */
-      .btn {
-        padding: 7px 16px;
-        border-radius: 7px;
-        border: none;
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.82rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.18s;
-        letter-spacing: 0.3px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-      }
-      .btn svg {
-        width: 13px;
-        height: 13px;
-        fill: currentColor;
-      }
-      .btn-p {
-        background: var(--accent);
-        color: #fff;
-      }
-      .btn-p:hover {
-        background: #c9202d;
-        transform: translateY(-1px);
-      }
-      .btn-p:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-      .btn-b {
-        background: var(--blue);
-        color: #fff;
-      }
-      .btn-b:hover {
-        background: #3478c5;
-      }
-      .btn-g {
-        background: transparent;
-        color: var(--muted);
-        border: 1px solid var(--border);
-      }
-      .btn-g:hover {
-        color: var(--text);
-        border-color: #333;
-        background: var(--hover);
-      }
-      .btn-sm {
-        padding: 5px 12px;
-        font-size: 0.75rem;
-      }
-      .btn-ic {
-        padding: 6px;
-        border-radius: 7px;
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--muted);
-        cursor: pointer;
-        transition: all 0.15s;
-        display: inline-flex;
-        align-items: center;
-      }
-      .btn-ic:hover {
-        color: var(--text);
-        border-color: #333;
-        background: var(--hover);
-      }
-      .btn-ic svg {
-        width: 14px;
-        height: 14px;
-        fill: currentColor;
-      }
-      .w100 {
-        width: 100%;
-        justify-content: center;
-      }
+/* ── BUTTONS ── */
+.btn{padding:7px 16px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .18s;letter-spacing:.3px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn svg{width:13px;height:13px;fill:currentColor;}
+.btn-p{background:var(--accent);color:#fff;}
+.btn-p:hover{background:#c9202d;transform:translateY(-1px);}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-b{background:var(--blue);color:#fff;}
+.btn-b:hover{background:#3478c5;}
+.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-g:hover{color:var(--text);border-color:#333;background:var(--hover);}
+.btn-sm{padding:5px 12px;font-size:.75rem;}
+.btn-ic{padding:6px;border-radius:7px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;}
+.btn-ic:hover{color:var(--text);border-color:#333;background:var(--hover);}
+.btn-ic svg{width:14px;height:14px;fill:currentColor;}
+.w100{width:100%;justify-content:center;}
 
-      /* ── INPUTS ── */
-      input,
-      select,
-      textarea {
-        width: 100%;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 8px 11px;
-        color: var(--text);
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.85rem;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      input:focus,
-      select:focus,
-      textarea:focus {
-        border-color: var(--accent);
-      }
-      input::placeholder,
-      textarea::placeholder {
-        color: var(--muted);
-      }
-      textarea {
-        resize: vertical;
-        min-height: 60px;
-      }
-      select option {
-        background: var(--surface);
-      }
+/* ── INPUTS ── */
+input,select,textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input::placeholder,textarea::placeholder{color:var(--muted);}
+textarea{resize:vertical;min-height:60px;}
+select option{background:var(--surface);}
 
-      /* ── TOAST ── */
-      .toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 999;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 9px;
-        padding: 10px 15px;
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transform: translateY(60px);
-        opacity: 0;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        max-width: 260px;
-        pointer-events: none;
-      }
-      .toast.on {
-        transform: translateY(0);
-        opacity: 1;
-      }
-      .toast.ok {
-        border-color: rgba(74, 222, 128, 0.3);
-      }
-      .toast.err {
-        border-color: rgba(230, 57, 70, 0.35);
-      }
-      .toast.info {
-        border-color: rgba(72, 149, 239, 0.35);
-      }
-      .tdot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .toast.ok .tdot {
-        background: var(--green);
-      }
-      .toast.err .tdot {
-        background: var(--accent);
-      }
-      .toast.info .tdot {
-        background: var(--blue);
-      }
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;z-index:999;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 15px;font-size:.8rem;display:flex;align-items:center;gap:8px;transform:translateY(60px);opacity:0;transition:all .25s cubic-bezier(.4,0,.2,1);max-width:260px;pointer-events:none;}
+.toast.on{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:rgba(74,222,128,.3);}
+.toast.err{border-color:rgba(230,57,70,.35);}
+.toast.info{border-color:rgba(72,149,239,.35);}
+.tdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.toast.ok .tdot{background:var(--green);}
+.toast.err .tdot{background:var(--accent);}
+.toast.info .tdot{background:var(--blue);}
 
-      /* ── SPINNER ── */
-      .spin-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        grid-column: 1/-1;
-        padding: 4rem;
-      }
-      .sp {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--accent);
-        animation: sp 1.1s infinite ease;
-      }
-      .sp:nth-child(2) {
-        animation-delay: 0.18s;
-      }
-      .sp:nth-child(3) {
-        animation-delay: 0.36s;
-      }
-      @keyframes sp {
-        0%,
-        80%,
-        100% {
-          transform: scale(0.5);
-          opacity: 0.3;
-        }
-        40% {
-          transform: scale(1);
-          opacity: 1;
-        }
-      }
+/* ── SPINNER ── */
+.spin-wrap{display:flex;align-items:center;justify-content:center;gap:7px;grid-column:1/-1;padding:4rem;}
+.sp{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:sp 1.1s infinite ease;}
+.sp:nth-child(2){animation-delay:.18s}.sp:nth-child(3){animation-delay:.36s}
+@keyframes sp{0%,80%,100%{transform:scale(.5);opacity:.3}40%{transform:scale(1);opacity:1}}
 
-      /* ── SETUP BANNER ── */
-      .setup-banner {
-        background: linear-gradient(135deg, #190c0e, var(--surface));
-        border: 1px solid rgba(230, 57, 70, 0.3);
-        border-radius: var(--radius);
-        padding: 1rem 1.4rem;
-        margin: 0.8rem;
-        display: none;
-      }
-      .setup-banner.on {
-        display: block;
-      }
-      .setup-banner h3 {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: 1rem;
-        letter-spacing: 2px;
-        color: var(--accent);
-        margin-bottom: 0.3rem;
-      }
-      .setup-banner p {
-        font-size: 0.78rem;
-        color: var(--muted);
-        line-height: 1.6;
-      }
+/* ── SETUP BANNER ── */
+.setup-banner{background:linear-gradient(135deg,#190c0e,var(--surface));border:1px solid rgba(230,57,70,.3);border-radius:var(--radius);padding:1rem 1.4rem;margin:.8rem;display:none;}
+.setup-banner.on{display:block;}
+.setup-banner h3{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--accent);margin-bottom:.3rem;}
+.setup-banner p{font-size:.78rem;color:var(--muted);line-height:1.6;}
 
-      /* ── MOBILE NAV ── */
-      #mobileNav {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 300;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-      }
-      #mobileNav.on {
-        display: flex;
-      }
-      #mobileDrawer {
-        width: min(280px, 85vw);
-        background: var(--surface);
-        border-right: 1px solid var(--border);
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        animation: slideIn 0.22s ease;
-      }
-      @keyframes slideIn {
-        from {
-          transform: translateX(-100%);
-        }
-        to {
-          transform: translateX(0);
-        }
-      }
-      #mobileDrawer .aside-top {
-        padding: 0.8rem;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-      }
-      #mobileDrawer .aside-actions {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 0;
-      }
-      #mobileDrawer .sidebar-scroll {
-        flex: 1;
-        overflow-y: auto;
-        padding: 0.5rem;
-      }
-      .shared-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        background: rgba(72, 149, 239, 0.15);
-        border: 1px solid rgba(72, 149, 239, 0.3);
-        color: var(--blue);
-      }
 
-      /* ── CARD MOBILE : layout vertical, titre + tag visibles ── */
-      @media (max-width: 640px) {
-        .ca {
-          opacity: 1 !important;
-        }
-        .play-icon {
-          opacity: 1 !important;
-          transform: scale(1) !important;
-        }
-        .play-ring {
-          background: rgba(0, 0, 0, 0.25) !important;
-        }
+/* ── MOBILE NAV ── */
+#mobileNav{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);}
+#mobileNav.on{display:flex;}
+#mobileDrawer{width:min(280px,85vw);background:var(--surface);border-right:1px solid var(--border);height:100%;display:flex;flex-direction:column;animation:slideIn .22s ease;}
+@keyframes slideIn{from{transform:translateX(-100%);}to{transform:translateX(0);}}
+#mobileDrawer .aside-top{padding:.8rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+#mobileDrawer .aside-actions{display:flex;gap:6px;margin-bottom:0;}
+#mobileDrawer .sidebar-scroll{flex:1;overflow-y:auto;padding:.5rem;}
+.shared-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;letter-spacing:.5px;background:rgba(72,149,239,.15);border:1px solid rgba(72,149,239,.3);color:var(--blue);}
 
-        /* Grille 1 colonne sur mobile */
-        .vgrid {
-          grid-template-columns: 1fr;
-          gap: 8px;
-          padding: 0.7rem;
-        }
+/* ── CARD MOBILE : layout vertical, titre + tag visibles ── */
+@media(max-width:640px){
+  .ca{opacity:1 !important;}
+  .play-icon{opacity:1 !important;transform:scale(1) !important;}
+  .play-ring{background:rgba(0,0,0,.25) !important;}
 
-        /* Card en ligne : miniature à gauche, infos à droite */
-        .card {
-          display: flex;
-          flex-direction: row;
-          align-items: stretch;
-          height: 88px;
-        }
+  /* Grille 1 colonne sur mobile */
+  .vgrid{grid-template-columns:1fr;gap:8px;padding:.7rem;}
 
-        /* Miniature fixe à gauche */
-        .thumb {
-          width: 140px;
-          flex-shrink: 0;
-          aspect-ratio: unset;
-          height: 100%;
-          border-radius: 0;
-        }
-        .thumb img {
-          height: 100%;
-          width: 100%;
-          object-fit: cover;
-        }
+  /* Card en ligne : miniature à gauche, infos à droite */
+  .card{display:flex;flex-direction:row;align-items:stretch;height:88px;}
 
-        /* Pill catégorie : repositionnée */
-        .cpill2 {
-          top: 6px;
-          left: 6px;
-          font-size: 0.55rem;
-          padding: 2px 5px;
-        }
+  /* Miniature fixe à gauche */
+  .thumb{
+    width:140px;flex-shrink:0;aspect-ratio:unset;height:100%;border-radius:0;
+  }
+  .thumb img{height:100%;width:100%;object-fit:cover;}
 
-        /* Bloc texte à droite */
-        .card-body {
-          flex: 1;
-          padding: 8px 10px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          overflow: hidden;
-          min-width: 0;
-        }
+  /* Pill catégorie : repositionnée */
+  .cpill2{top:6px;left:6px;font-size:.55rem;padding:2px 5px;}
 
-        /* Titre : 3 lignes max, toujours visible */
-        .card-title {
-          font-size: 0.82rem;
-          line-height: 1.35;
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          margin-bottom: 4px;
-        }
+  /* Bloc texte à droite */
+  .card-body{
+    flex:1;padding:8px 10px;display:flex;flex-direction:column;
+    justify-content:space-between;overflow:hidden;min-width:0;
+  }
 
-        /* Footer date + actions */
-        .card-foot {
-          flex-wrap: wrap;
-          gap: 4px;
-        }
-        .card-date {
-          font-size: 0.62rem;
-        }
-      }
+  /* Titre : 3 lignes max, toujours visible */
+  .card-title{
+    font-size:.82rem;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+    overflow:hidden;margin-bottom:4px;
+  }
 
-      /* ── TREE : chevron collapse ── */
-      .ti-chevron {
-        font-size: 0.7rem;
-        color: var(--muted);
-        flex-shrink: 0;
-        transition: transform 0.2s;
-        cursor: pointer;
-        padding: 2px 4px;
-        line-height: 1;
-      }
-      .ti-chevron.open {
-        transform: rotate(90deg);
-      }
-      .tree-children {
-        overflow: hidden;
-      }
-      .tree-children.collapsed {
-        display: none;
-      }
+  /* Footer date + actions */
+  .card-foot{flex-wrap:wrap;gap:4px;}
+  .card-date{font-size:.62rem;}
+}
 
-      @media (max-width: 640px) {
-        aside {
-          display: none;
-        }
-        .mg2 {
-          grid-template-columns: 1fr;
-        }
-        .hdr-r .user-chip {
-          display: none;
-        }
-        .hdr-r .status-row {
-          display: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- ══════════ AUTH SCREEN ══════════ -->
-    <div id="authScreen">
-      <div class="auth-box">
-        <div class="auth-logo">VideoVault</div>
-        <div class="auth-sub">Votre bibliothèque YouTube</div>
+/* ── SIDEBAR SECTIONS ── */
+.tree-section-hdr{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 8px 4px;
+  font-size:.62rem;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);
+  margin-top:6px;
+}
+.tree-section-hdr:first-child{margin-top:0;}
+.tree-section-hdr .tsh-line{flex:1;height:1px;background:var(--border);}
+.tree-section-hdr.shared{color:var(--blue);}
+.tree-item.shared-item .ti-label{color:var(--blue);opacity:.9;}
+.tree-item.shared-item.active{background:rgba(72,149,239,.12);color:var(--blue);}
+.shared-lib-hdr{
+  display:flex;align-items:center;gap:6px;padding:5px 8px;
+  border-radius:7px;cursor:pointer;font-size:.8rem;
+  transition:background .15s;margin-bottom:2px;
+}
+.shared-lib-hdr:hover{background:var(--hover);}
+.shared-lib-hdr .sl-name{flex:1;font-weight:500;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shared-lib-hdr .sl-cnt{font-size:.62rem;color:var(--muted);}
+.shared-lib-hdr .sl-del{
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  border-radius:3px;opacity:0;color:var(--muted);background:transparent;border:none;
+  cursor:pointer;flex-shrink:0;font-size:.8rem;transition:all .15s;
+}
+.shared-lib-hdr:hover .sl-del{opacity:1;}
+.sl-del:hover{background:rgba(230,57,70,.15);color:var(--accent);}
 
-        <div class="auth-tabs">
-          <button class="auth-tab active" onclick="switchTab('login')">
-            Connexion
-          </button>
-          <button class="auth-tab" onclick="switchTab('register')">
-            Créer un compte
-          </button>
-          <button class="auth-tab" onclick="switchTab('code')">
-            Code partagé
-          </button>
-        </div>
+/* ── TREE : chevron collapse ── */
+.ti-chevron{font-size:.7rem;color:var(--muted);flex-shrink:0;transition:transform .2s;cursor:pointer;padding:2px 4px;line-height:1;}
+.ti-chevron.open{transform:rotate(90deg);}
+.tree-children{overflow:hidden;}
+.tree-children.collapsed{display:none;}
 
-        <div id="authErr" class="auth-err"></div>
+@media(max-width:640px){
+  aside{display:none;}
+  .mg2{grid-template-columns:1fr;}
+  .hdr-r .user-chip{display:none;}
+  .hdr-r .status-row{display:none;}
+}
+</style>
+</head>
+<body>
 
-        <div id="panelLogin" class="auth-panel active">
-          <div class="auth-field">
-            <label>Email</label>
-            <input
-              type="email"
-              id="lEmail"
-              placeholder="vous@exemple.com"
-              autocomplete="email"
-            />
-          </div>
-          <div class="auth-field">
-            <label>Mot de passe</label>
-            <input
-              type="password"
-              id="lPw"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              onkeydown="if (event.key === 'Enter') doLogin();"
-            />
-          </div>
-          <button class="btn btn-p w100" id="btnLogin" onclick="doLogin()">
-            Se connecter
-          </button>
-        </div>
+<!-- ══════════ AUTH SCREEN ══════════ -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">VideoVault</div>
+    <div class="auth-sub">Votre bibliothèque YouTube</div>
 
-        <div id="panelRegister" class="auth-panel">
-          <div class="auth-field">
-            <label>Email</label>
-            <input
-              type="email"
-              id="rEmail"
-              placeholder="vous@exemple.com"
-              autocomplete="email"
-            />
-          </div>
-          <div class="auth-field">
-            <label
-              >Mot de passe
-              <span style="color: var(--muted); font-size: 0.7rem"
-                >(6 car. min.)</span
-              ></label
-            >
-            <input
-              type="password"
-              id="rPw"
-              placeholder="••••••••"
-              autocomplete="new-password"
-              onkeydown="if (event.key === 'Enter') doRegister();"
-            />
-          </div>
-          <button
-            class="btn btn-p w100"
-            id="btnRegister"
-            onclick="doRegister()"
-          >
-            Créer mon compte
-          </button>
-        </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
+      <button class="auth-tab" onclick="switchTab('register')">Créer un compte</button>
+      <button class="auth-tab" onclick="switchTab('code')">Code partagé</button>
+    </div>
 
-        <div id="panelCode" class="auth-panel">
-          <p class="auth-hint">
-            Entrez un code à 8 caractères reçu d'un autre utilisateur pour
-            consulter sa bibliothèque en lecture seule.
-          </p>
-          <div class="auth-row">
-            <div class="auth-field">
-              <label>Code de partage</label>
-              <input
-                type="text"
-                id="shareInput"
-                placeholder="AB12CD34"
-                maxlength="8"
-                style="
-                  text-transform: uppercase;
-                  letter-spacing: 3px;
-                  text-align: center;
-                "
-                onkeydown="if (event.key === 'Enter') accessCode();"
-              />
-            </div>
-            <button class="btn btn-b btn-sm" onclick="accessCode()">
-              Accéder
-            </button>
-          </div>
-        </div>
+    <div id="authErr" class="auth-err"></div>
 
-        <div id="panelNoFirebase" class="auth-panel">
-          <p class="auth-hint">
-            Firebase n'est pas configuré. Ouvrez ce fichier dans un éditeur de
-            texte et remplacez le bloc <code>firebaseConfig</code> par vos
-            vraies clés Firebase.
-          </p>
-        </div>
+    <div id="panelLogin" class="auth-panel active">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="lEmail" placeholder="vous@exemple.com" autocomplete="email">
       </div>
-    </div>
-
-    <!-- ══════════ APP SHELL ══════════ -->
-    <div id="appShell">
-      <header>
-        <div style="display: flex; align-items: center; gap: 10px">
-          <button
-            class="btn-ic"
-            id="btnHamburger"
-            onclick="toggleMobileNav()"
-            style="display: none"
-            title="Menu"
-          >
-            <svg
-              viewBox="0 0 16 16"
-              style="width: 16px; height: 16px; fill: currentColor"
-            >
-              <path
-                d="M2.5 12a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm0-4a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm0-4a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11z"
-              />
-            </svg>
-          </button>
-          <div class="logo">VideoVault</div>
-          <span class="shared-badge" id="sharedBadge" style="display: none"
-            >👁 Lecture seule</span
-          >
-        </div>
-        <div class="hdr-r">
-          <div class="status-row">
-            <div class="dot"></div>
-            <span style="font-size: 0.7rem; color: var(--muted)" id="stTxt"
-              >Connecté</span
-            >
-          </div>
-          <div class="user-chip" id="userChip"></div>
-          <button
-            class="btn-ic"
-            title="Importer JSON"
-            onclick="openModal('modalImport')"
-          >
-            <svg viewBox="0 0 16 16">
-              <path
-                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"
-              />
-              <path
-                d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"
-              />
-            </svg>
-          </button>
-          <button class="btn-ic" title="Exporter JSON" onclick="exportJSON()">
-            <svg viewBox="0 0 16 16">
-              <path
-                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"
-              />
-              <path
-                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"
-              />
-            </svg>
-          </button>
-          <button
-            class="btn-ic"
-            title="Partager"
-            onclick="openShareModal()"
-            id="btnShareHdr"
-          >
-            <svg viewBox="0 0 16 16">
-              <path
-                d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"
-              />
-            </svg>
-          </button>
-          <button
-            class="btn btn-g btn-sm"
-            onclick="openModal('modalAccessCode')"
-            title="Accéder à une bibliothèque partagée"
-            id="btnAccessCode"
-          >
-            🔑 Code
-          </button>
-          <button class="btn btn-g btn-sm" onclick="doLogout()">
-            Déconnexion
-          </button>
-        </div>
-      </header>
-
-      <div class="app-body">
-        <aside>
-          <div class="aside-top">
-            <div class="aside-actions">
-              <button
-                class="btn btn-p btn-sm"
-                style="flex: 1; justify-content: center"
-                onclick="openVideoModal()"
-                id="btnAddVideo"
-              >
-                + Vidéo
-              </button>
-              <button
-                class="btn btn-g btn-sm"
-                onclick="openFolderModal()"
-                id="btnAddFolder"
-                style="padding: 5px 10px"
-              >
-                <svg
-                  viewBox="0 0 16 16"
-                  style="width: 13px; height: 13px; fill: currentColor"
-                >
-                  <path
-                    d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z"
-                  />
-                </svg>
-                Dossier
-              </button>
-            </div>
-          </div>
-          <div class="sidebar-scroll" id="tree"></div>
-        </aside>
-
-        <div class="main-content">
-          <div class="setup-banner" id="setupBanner">
-            <h3>⚡ Firebase non configuré</h3>
-            <p>
-              Remplacez le bloc <code>firebaseConfig</code> dans le fichier HTML
-              par vos vraies clés Firebase.
-            </p>
-          </div>
-
-          <div class="breadcrumb" id="breadcrumb">
-            <span class="bc bc-active" onclick="nav(null)">Bibliothèque</span>
-          </div>
-
-          <div class="toolbar">
-            <div class="sw">
-              <svg viewBox="0 0 16 16">
-                <path
-                  d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                id="search"
-                placeholder="Rechercher… (Ctrl+K)"
-                oninput="renderGrid()"
-              />
-            </div>
-            <select class="sort-sel" id="sortSel" onchange="renderGrid()">
-              <option value="addedDesc">Ajout ↓</option>
-              <option value="addedAsc">Ajout ↑</option>
-              <option value="pubDesc">Publication ↓</option>
-              <option value="pubAsc">Publication ↑</option>
-              <option value="titleAsc">Titre A→Z</option>
-              <option value="titleDesc">Titre Z→A</option>
-            </select>
-            <div class="cpill"><b id="cnt">0</b> vidéo(s)</div>
-          </div>
-
-          <div class="vgrid" id="grid">
-            <div class="spin-wrap">
-              <div class="sp"></div>
-              <div class="sp"></div>
-              <div class="sp"></div>
-            </div>
-          </div>
-        </div>
+      <div class="auth-field">
+        <label>Mot de passe</label>
+        <input type="password" id="lPw" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLogin()">
       </div>
+      <button class="btn btn-p w100" id="btnLogin" onclick="doLogin()">Se connecter</button>
     </div>
 
-    <!-- ══ MODAL VIDÉO ══ -->
-    <div class="overlay" id="modalVideo">
-      <div class="modal">
-        <div class="modal-t" id="videoModalTitle">Nouvelle vidéo</div>
-        <div class="mg">
-          <div class="field">
-            <label>URL YouTube (vidéo, Short ou youtu.be)</label>
-            <input
-              type="url"
-              id="vmUrl"
-              placeholder="https://youtube.com/watch?v=…"
-              oninput="previewThumb()"
-            />
-          </div>
-        </div>
-        <div id="thumbPreviewWrap" style="display: none; margin-bottom: 10px">
-          <img
-            id="thumbPreview"
-            style="
-              width: 100%;
-              border-radius: 6px;
-              aspect-ratio: 16/9;
-              object-fit: cover;
-              background: #0a0b10;
-            "
-            alt=""
-          />
-        </div>
-        <div class="mg mg2">
-          <div class="field">
-            <label>Titre</label
-            ><input type="text" id="vmTitle" placeholder="Titre de la vidéo" />
-          </div>
-          <div class="field">
-            <label>Date de publication</label><input type="date" id="vmPub" />
-          </div>
-        </div>
-        <div class="mg mg2">
-          <div class="field">
-            <label>Catégorie / tag</label
-            ><input type="text" id="vmCat" placeholder="Musique, Dev, Sport…" />
-          </div>
-          <div class="field">
-            <label>Dossier</label
-            ><select id="vmFolder"></select>
-          </div>
-        </div>
-        <div class="mg">
-          <div class="field">
-            <label>Notes personnelles</label
-            ><textarea id="vmNotes" placeholder="Optionnel…"></textarea>
-          </div>
-        </div>
-        <div class="ma">
-          <button class="btn btn-g" onclick="closeModal('modalVideo')">
-            Annuler
-          </button>
-          <button class="btn btn-p" id="vmSaveBtn" onclick="saveVideo()">
-            Enregistrer
-          </button>
-        </div>
+    <div id="panelRegister" class="auth-panel">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="rEmail" placeholder="vous@exemple.com" autocomplete="email">
       </div>
-    </div>
-
-    <!-- ══ MODAL DOSSIER ══ -->
-    <div class="overlay" id="modalFolder">
-      <div class="modal" style="width: 380px">
-        <div class="modal-t">Nouveau dossier</div>
-        <div class="mg">
-          <div class="field">
-            <label>Nom du dossier</label>
-            <input
-              type="text"
-              id="fmName"
-              placeholder="Ex : Tutoriels Python"
-              onkeydown="if (event.key === 'Enter') saveFolder();"
-            />
-          </div>
-          <div class="field">
-            <label
-              >Dossier parent
-              <span style="color: var(--muted); font-size: 0.7rem"
-                >(optionnel, max 3 niveaux)</span
-              ></label
-            >
-            <select id="fmParent"></select>
-          </div>
-        </div>
-        <div class="ma">
-          <button class="btn btn-g" onclick="closeModal('modalFolder')">
-            Annuler
-          </button>
-          <button class="btn btn-p" onclick="saveFolder()">Créer</button>
-        </div>
+      <div class="auth-field">
+        <label>Mot de passe <span style="color:var(--muted);font-size:.7rem;">(6 car. min.)</span></label>
+        <input type="password" id="rPw" placeholder="••••••••" autocomplete="new-password"
+               onkeydown="if(event.key==='Enter')doRegister()">
       </div>
+      <button class="btn btn-p w100" id="btnRegister" onclick="doRegister()">Créer mon compte</button>
     </div>
 
-    <!-- ══ MODAL DÉPLACER ══ -->
-    <div class="overlay" id="modalMove">
-      <div class="modal" style="width: 360px">
-        <div class="modal-t">Déplacer la vidéo</div>
-        <p
-          style="
-            font-size: 0.82rem;
-            color: var(--muted);
-            margin-bottom: 14px;
-            font-style: italic;
-          "
-          id="movingLabel"
-        ></p>
-        <div class="field">
-          <label>Destination</label
-          ><select id="moveTarget"></select>
-        </div>
-        <div class="ma">
-          <button class="btn btn-g" onclick="closeModal('modalMove')">
-            Annuler
-          </button>
-          <button class="btn btn-p" onclick="confirmMove()">Déplacer</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ MODAL PARTAGE ══ -->
-    <div class="overlay" id="modalShare">
-      <div class="modal" style="width: 520px">
-        <div class="modal-t">Partage &amp; Codes</div>
-        <p
-          style="
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            line-height: 1.65;
-          "
-        >
-          Générez un code à 8 caractères pour partager votre bibliothèque (ou un
-          dossier) en lecture seule. La personne n'a pas besoin de compte.
-          Révoquez le code à tout moment.
-        </p>
-        <div class="mg mg2">
-          <div class="field">
-            <label>Portée</label>
-            <select id="shareScope" onchange="toggleShareFolder()">
-              <option value="all">Toute la bibliothèque</option>
-              <option value="folder">Un dossier précis</option>
-            </select>
-          </div>
-          <div class="field" id="shareFolderWrap" style="display: none">
-            <label>Dossier</label>
-            <select id="shareFolder"></select>
-          </div>
-        </div>
-        <div class="mg">
-          <div class="field">
-            <label>Note (optionnel)</label>
-            <input type="text" id="shareNote" placeholder="Ex : pour Marie" />
-          </div>
-        </div>
-        <button class="btn btn-p" onclick="generateCode()">
-          Générer un code
-        </button>
-        <div id="newCodeWrap" style="display: none">
-          <div
-            class="code-box"
-            id="newCodeDisplay"
-            onclick="copyCode(this.textContent.trim())"
-          ></div>
-          <p style="font-size: 0.7rem; color: var(--muted); text-align: center">
-            Cliquez pour copier · Code à usage unique
-          </p>
-        </div>
-        <div style="margin-top: 1.2rem">
-          <div
-            style="
-              font-size: 0.68rem;
-              font-weight: 600;
-              color: var(--muted);
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              margin-bottom: 8px;
-            "
-          >
-            Codes actifs
-          </div>
-          <div class="share-list" id="shareList"></div>
-        </div>
-        <div class="ma" style="margin-top: 1rem">
-          <button class="btn btn-g" onclick="closeModal('modalShare')">
-            Fermer
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ CONTEXT MENU ══ -->
-    <div class="ctx" id="ctx">
-      <button class="ctx-item" onclick="ctxDo('edit')">
-        <svg viewBox="0 0 16 16">
-          <path
-            d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"
-          />
-        </svg>
-        Modifier
-      </button>
-      <button class="ctx-item" onclick="ctxDo('move')">
-        <svg viewBox="0 0 16 16">
-          <path
-            d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"
-          />
-        </svg>
-        Déplacer vers…
-      </button>
-      <div class="ctx-sep"></div>
-      <button class="ctx-item red" onclick="ctxDo('delete')">
-        <svg viewBox="0 0 16 16">
-          <path
-            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"
-          />
-          <path
-            fill-rule="evenodd"
-            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
-          />
-        </svg>
-        Supprimer
-      </button>
-    </div>
-
-    <div class="toast" id="toast">
-      <div class="tdot"></div>
-      <span id="toastMsg"></span>
-    </div>
-
-    <!-- ══ MODAL ACCÈS CODE PARTAGÉ ══ -->
-    <div class="overlay" id="modalAccessCode">
-      <div class="modal" style="width: 380px">
-        <div class="modal-t">Accéder à une bibliothèque partagée</div>
-        <p
-          style="
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            line-height: 1.65;
-          "
-        >
-          Entrez un code à 8 caractères reçu d'un autre utilisateur. Vous
-          accéderez à sa bibliothèque en lecture seule dans un nouvel onglet.
-        </p>
-        <div class="field" style="margin-bottom: 14px">
+    <div id="panelCode" class="auth-panel">
+      <p class="auth-hint">Entrez un code à 8 caractères reçu d'un autre utilisateur pour consulter sa bibliothèque en lecture seule.</p>
+      <div class="auth-row">
+        <div class="auth-field">
           <label>Code de partage</label>
-          <input
-            type="text"
-            id="inAppCodeInput"
-            placeholder="AB12CD34"
-            maxlength="8"
-            style="
-              text-transform: uppercase;
-              letter-spacing: 4px;
-              text-align: center;
-              font-size: 1.1rem;
-            "
-            onkeydown="if (event.key === 'Enter') openSharedLib();"
-          />
+          <input type="text" id="shareInput" placeholder="AB12CD34" maxlength="8"
+                 style="text-transform:uppercase;letter-spacing:3px;text-align:center;"
+                 onkeydown="if(event.key==='Enter')accessCode()">
         </div>
-        <div
-          id="inAppCodeErr"
-          style="
-            font-size: 0.78rem;
-            color: var(--accent);
-            min-height: 16px;
-            margin-bottom: 8px;
-          "
-        ></div>
-        <div class="ma">
-          <button class="btn btn-g" onclick="closeModal('modalAccessCode')">
-            Annuler
-          </button>
-          <button class="btn btn-b" onclick="openSharedLib()">Accéder</button>
-        </div>
+        <button class="btn btn-b btn-sm" onclick="accessCode()">Accéder</button>
       </div>
     </div>
 
-    <!-- ══ DRAWER MOBILE ══ -->
-    <div id="mobileNav" onclick="closeMobileNav(event)">
-      <div id="mobileDrawer">
-        <div class="aside-top">
-          <div class="aside-actions">
-            <button
-              class="btn btn-p btn-sm"
-              style="flex: 1; justify-content: center"
-              onclick="
-                openVideoModal();
-                closeMobileNav();
-              "
-              id="mDrawerAddVideo"
-            >
-              + Vidéo
-            </button>
-            <button
-              class="btn btn-g btn-sm"
-              onclick="
-                openFolderModal();
-                closeMobileNav();
-              "
-              id="mDrawerAddFolder"
-              style="padding: 5px 10px"
-            >
-              <svg
-                viewBox="0 0 16 16"
-                style="width: 13px; height: 13px; fill: currentColor"
-              >
-                <path
-                  d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z"
-                />
-              </svg>
-              Dossier
-            </button>
-          </div>
-        </div>
-        <div class="sidebar-scroll" id="mobileTree"></div>
-      </div>
+    <div id="panelNoFirebase" class="auth-panel">
+      <p class="auth-hint">Firebase n'est pas configuré. Ouvrez ce fichier dans un éditeur de texte et remplacez le bloc <code>firebaseConfig</code> par vos vraies clés Firebase.</p>
     </div>
+  </div>
+</div>
 
-    <!-- ══ MODAL IMPORT JSON ══ -->
-    <div class="overlay" id="modalImport">
-      <div class="modal" style="width: 460px">
-        <div class="modal-t">Importer un fichier JSON</div>
-        <p
-          style="
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            line-height: 1.65;
-          "
-        >
-          Sélectionnez un export VideoVault (.json). Les vidéos et dossiers
-          seront ajoutés à votre bibliothèque. Les doublons (même URL) sont
-          ignorés.
-        </p>
-        <div class="field" style="margin-bottom: 14px">
-          <label>Fichier JSON</label>
-          <input
-            type="file"
-            id="importFile"
-            accept=".json"
-            style="cursor: pointer"
-          />
-        </div>
-        <div
-          id="importPreview"
-          style="
-            display: none;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            font-size: 0.8rem;
-            color: var(--muted);
-            line-height: 1.7;
-          "
-        ></div>
-        <div class="ma">
-          <button class="btn btn-g" onclick="closeModal('modalImport')">
-            Annuler
-          </button>
-          <button
-            class="btn btn-p"
-            id="importBtn"
-            onclick="doImport()"
-            disabled
-          >
-            Importer
+<!-- ══════════ APP SHELL ══════════ -->
+<div id="appShell">
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn-ic" id="btnHamburger" onclick="toggleMobileNav()" style="display:none;" title="Menu">
+        <svg viewBox="0 0 16 16" style="width:16px;height:16px;fill:currentColor"><path d="M2.5 12a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm0-4a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11zm0-4a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-11z"/></svg>
+      </button>
+      <div class="logo">VideoVault</div>
+      <span class="shared-badge" id="sharedBadge" style="display:none;">👁 Lecture seule</span>
+    </div>
+    <div class="hdr-r">
+      <div class="status-row"><div class="dot"></div><span style="font-size:.7rem;color:var(--muted)" id="stTxt">Connecté</span></div>
+      <div class="user-chip" id="userChip"></div>
+      <button class="btn-ic" title="Importer JSON" onclick="openModal('modalImport')">
+        <svg viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+      </button>
+      <button class="btn-ic" title="Exporter JSON" onclick="exportJSON()">
+        <svg viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+      </button>
+      <button class="btn-ic" title="Partager" onclick="openShareModal()" id="btnShareHdr">
+        <svg viewBox="0 0 16 16"><path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"/></svg>
+      </button>
+      <button class="btn btn-g btn-sm" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <aside>
+      <div class="aside-top">
+        <div class="aside-actions">
+          <button class="btn btn-p btn-sm" style="flex:1;justify-content:center;" onclick="openVideoModal()" id="btnAddVideo">+ Vidéo</button>
+          <button class="btn btn-g btn-sm" onclick="openFolderModal()" id="btnAddFolder" style="padding:5px 10px;">
+            <svg viewBox="0 0 16 16" style="width:13px;height:13px;fill:currentColor"><path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z"/></svg>
+            Dossier
           </button>
         </div>
       </div>
-    </div>
+      <div class="sidebar-scroll" id="tree"></div>
+    </aside>
 
-    <!-- ══════════════════════════════════════════════════════
+    <div class="main-content">
+      <div class="setup-banner" id="setupBanner">
+        <h3>⚡ Firebase non configuré</h3>
+        <p>Remplacez le bloc <code>firebaseConfig</code> dans le fichier HTML par vos vraies clés Firebase.</p>
+      </div>
+
+      <div class="breadcrumb" id="breadcrumb">
+        <span class="bc bc-active" onclick="nav(null)">Bibliothèque</span>
+      </div>
+
+      <div class="toolbar">
+        <div class="sw">
+          <svg viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+          <input type="text" id="search" placeholder="Rechercher… (Ctrl+K)" oninput="renderGrid()">
+        </div>
+        <select class="sort-sel" id="sortSel" onchange="renderGrid()">
+          <option value="addedDesc">Ajout ↓</option>
+          <option value="addedAsc">Ajout ↑</option>
+          <option value="pubDesc">Publication ↓</option>
+          <option value="pubAsc">Publication ↑</option>
+          <option value="titleAsc">Titre A→Z</option>
+          <option value="titleDesc">Titre Z→A</option>
+        </select>
+        <div class="cpill"><b id="cnt">0</b> vidéo(s)</div>
+      </div>
+
+      <div class="vgrid" id="grid">
+        <div class="spin-wrap"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL VIDÉO ══ -->
+<div class="overlay" id="modalVideo">
+  <div class="modal">
+    <div class="modal-t" id="videoModalTitle">Nouvelle vidéo</div>
+    <div class="mg">
+      <div class="field"><label>URL YouTube (vidéo, Short ou youtu.be)</label>
+        <input type="url" id="vmUrl" placeholder="https://youtube.com/watch?v=…" oninput="previewThumb()">
+      </div>
+    </div>
+    <div id="thumbPreviewWrap" style="display:none;margin-bottom:10px;">
+      <img id="thumbPreview" style="width:100%;border-radius:6px;aspect-ratio:16/9;object-fit:cover;background:#0a0b10;" alt="">
+    </div>
+    <div class="mg mg2">
+      <div class="field"><label>Titre</label><input type="text" id="vmTitle" placeholder="Titre de la vidéo"></div>
+      <div class="field"><label>Date de publication</label><input type="date" id="vmPub"></div>
+    </div>
+    <div class="mg mg2">
+      <div class="field"><label>Catégorie / tag</label><input type="text" id="vmCat" placeholder="Musique, Dev, Sport…"></div>
+      <div class="field"><label>Dossier</label><select id="vmFolder"></select></div>
+    </div>
+    <div class="mg">
+      <div class="field"><label>Notes personnelles</label><textarea id="vmNotes" placeholder="Optionnel…"></textarea></div>
+    </div>
+    <div class="ma">
+      <button class="btn btn-g" onclick="closeModal('modalVideo')">Annuler</button>
+      <button class="btn btn-p" id="vmSaveBtn" onclick="saveVideo()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DOSSIER ══ -->
+<div class="overlay" id="modalFolder">
+  <div class="modal" style="width:380px;">
+    <div class="modal-t">Nouveau dossier</div>
+    <div class="mg">
+      <div class="field"><label>Nom du dossier</label>
+        <input type="text" id="fmName" placeholder="Ex : Tutoriels Python" onkeydown="if(event.key==='Enter')saveFolder()">
+      </div>
+      <div class="field"><label>Dossier parent <span style="color:var(--muted);font-size:.7rem;">(optionnel, max 3 niveaux)</span></label>
+        <select id="fmParent"></select>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="btn btn-g" onclick="closeModal('modalFolder')">Annuler</button>
+      <button class="btn btn-p" onclick="saveFolder()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DÉPLACER ══ -->
+<div class="overlay" id="modalMove">
+  <div class="modal" style="width:360px;">
+    <div class="modal-t">Déplacer la vidéo</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;font-style:italic;" id="movingLabel"></p>
+    <div class="field"><label>Destination</label><select id="moveTarget"></select></div>
+    <div class="ma">
+      <button class="btn btn-g" onclick="closeModal('modalMove')">Annuler</button>
+      <button class="btn btn-p" onclick="confirmMove()">Déplacer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PARTAGE ══ -->
+<div class="overlay" id="modalShare">
+  <div class="modal" style="width:520px;">
+    <div class="modal-t">Partage &amp; Codes</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem;line-height:1.65;">Générez un code à 8 caractères pour partager votre bibliothèque (ou un dossier) en lecture seule. La personne n'a pas besoin de compte. Révoquez le code à tout moment.</p>
+    <div class="mg mg2">
+      <div class="field"><label>Portée</label>
+        <select id="shareScope" onchange="toggleShareFolder()">
+          <option value="all">Toute la bibliothèque</option>
+          <option value="folder">Un dossier précis</option>
+        </select>
+      </div>
+      <div class="field" id="shareFolderWrap" style="display:none;"><label>Dossier</label>
+        <select id="shareFolder"></select>
+      </div>
+    </div>
+    <div class="mg">
+      <div class="field"><label>Note (optionnel)</label>
+        <input type="text" id="shareNote" placeholder="Ex : pour Marie">
+      </div>
+    </div>
+    <button class="btn btn-p" onclick="generateCode()">Générer un code</button>
+    <div id="newCodeWrap" style="display:none;">
+      <div class="code-box" id="newCodeDisplay" onclick="copyCode(this.textContent.trim())"></div>
+      <p style="font-size:.7rem;color:var(--muted);text-align:center;">Cliquez pour copier · Code à usage unique</p>
+    </div>
+    <div style="margin-top:1.2rem;">
+      <div style="font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Codes actifs</div>
+      <div class="share-list" id="shareList"></div>
+    </div>
+    <div class="ma" style="margin-top:1rem;">
+      <button class="btn btn-g" onclick="closeModal('modalShare')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONTEXT MENU ══ -->
+<div class="ctx" id="ctx">
+  <button class="ctx-item" onclick="ctxDo('edit')">
+    <svg viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"/></svg>
+    Modifier
+  </button>
+  <button class="ctx-item" onclick="ctxDo('move')">
+    <svg viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>
+    Déplacer vers…
+  </button>
+  <div class="ctx-sep"></div>
+  <button class="ctx-item red" onclick="ctxDo('delete')">
+    <svg viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+    Supprimer
+  </button>
+</div>
+
+<div class="toast" id="toast"><div class="tdot"></div><span id="toastMsg"></span></div>
+
+<!-- ══ MODAL ACCÈS CODE PARTAGÉ ══ -->
+<div class="overlay" id="modalAccessCode">
+  <div class="modal" style="width:380px;">
+    <div class="modal-t">Accéder à une bibliothèque partagée</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem;line-height:1.65;">
+      Entrez un code à 8 caractères reçu d'un autre utilisateur. Vous accéderez à sa bibliothèque en lecture seule dans un nouvel onglet.
+    </p>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Code de partage</label>
+      <input type="text" id="inAppCodeInput" placeholder="AB12CD34" maxlength="8"
+             style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:1.1rem;"
+             onkeydown="if(event.key==='Enter')openSharedLib()">
+    </div>
+    <div id="inAppCodeErr" style="font-size:.78rem;color:var(--accent);min-height:16px;margin-bottom:8px;"></div>
+    <div class="ma">
+      <button class="btn btn-g" onclick="closeModal('modalAccessCode')">Annuler</button>
+      <button class="btn btn-b" id="inAppCodeBtn" onclick="addSharedLibFromApp()">Accéder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DRAWER MOBILE ══ -->
+<div id="mobileNav" onclick="closeMobileNav(event)">
+  <div id="mobileDrawer">
+    <div class="aside-top">
+      <div class="aside-actions">
+        <button class="btn btn-p btn-sm" style="flex:1;justify-content:center;" onclick="openVideoModal();closeMobileNav()" id="mDrawerAddVideo">+ Vidéo</button>
+        <button class="btn btn-g btn-sm" onclick="openFolderModal();closeMobileNav()" id="mDrawerAddFolder" style="padding:5px 10px;">
+          <svg viewBox="0 0 16 16" style="width:13px;height:13px;fill:currentColor"><path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z"/></svg>
+          Dossier
+        </button>
+      </div>
+    </div>
+    <div class="sidebar-scroll" id="mobileTree"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL IMPORT JSON ══ -->
+<div class="overlay" id="modalImport">
+  <div class="modal" style="width:460px;">
+    <div class="modal-t">Importer un fichier JSON</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem;line-height:1.65;">
+      Sélectionnez un export VideoVault (.json). Les vidéos et dossiers seront ajoutés à votre bibliothèque. Les doublons (même URL) sont ignorés.
+    </p>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Fichier JSON</label>
+      <input type="file" id="importFile" accept=".json" style="cursor:pointer;">
+    </div>
+    <div id="importPreview" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.8rem;color:var(--muted);line-height:1.7;"></div>
+    <div class="ma">
+      <button class="btn btn-g" onclick="closeModal('modalImport')">Annuler</button>
+      <button class="btn btn-p" id="importBtn" onclick="doImport()" disabled>Importer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
      FIREBASE MODULE  — placé en fin de body pour que le DOM
      soit prêt avant que onAuthStateChanged ne se déclenche
 ══════════════════════════════════════════════════════ -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import {
-        getAuth,
-        createUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-        signOut,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-      import {
-        getFirestore,
-        collection,
-        doc,
-        addDoc,
-        setDoc,
-        getDoc,
-        getDocs,
-        updateDoc,
-        deleteDoc,
-        query,
-        where,
-        serverTimestamp,
-      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword,
+         signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, setDoc,
+         getDoc, getDocs, updateDoc, deleteDoc,
+         query, where, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      // ▼▼▼ REMPLACEZ CE BLOC PAR VOS VRAIES CLÉS FIREBASE ▼▼▼
-      const firebaseConfig = {
-        apiKey: "AIzaSyAbjeVvfkGzwfKsQUtFfeeRtUJKOfy_3cs",
-        authDomain: "videovault-f82dd.firebaseapp.com",
-        projectId: "videovault-f82dd",
-        storageBucket: "videovault-f82dd.firebasestorage.app",
-        messagingSenderId: "1036130775845",
-        appId: "1:1036130775845:web:44f57ad4f36009202220cc",
-      };
-      // ▲▲▲ FIN DU BLOC À REMPLACER ▲▲▲
+// ▼▼▼ REMPLACEZ CE BLOC PAR VOS VRAIES CLÉS FIREBASE ▼▼▼
+const firebaseConfig = {
+  apiKey:            "VOTRE_API_KEY",
+  authDomain:        "VOTRE_PROJECT_ID.firebaseapp.com",
+  projectId:         "VOTRE_PROJECT_ID",
+  storageBucket:     "VOTRE_PROJECT_ID.appspot.com",
+  messagingSenderId: "VOTRE_SENDER_ID",
+  appId:             "VOTRE_APP_ID"
+};
+// ▲▲▲ FIN DU BLOC À REMPLACER ▲▲▲
 
-      const PLACEHOLDER = firebaseConfig.apiKey === "VOTRE_API_KEY";
+const PLACEHOLDER = firebaseConfig.apiKey === "VOTRE_API_KEY";
 
-      if (PLACEHOLDER) {
-        // Pas configuré : afficher le panneau explicatif
-        document
-          .querySelectorAll(".auth-tab")
-          .forEach((el) => (el.style.display = "none"));
-        document
-          .querySelectorAll(".auth-panel")
-          .forEach((el) => el.classList.remove("active"));
-        document.getElementById("panelNoFirebase").classList.add("active");
-        document.getElementById("setupBanner").classList.add("on");
-      } else {
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+if (PLACEHOLDER) {
+  // Pas configuré : afficher le panneau explicatif
+  document.querySelectorAll('.auth-tab').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.auth-panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('panelNoFirebase').classList.add('active');
+  document.getElementById('setupBanner').classList.add('on');
+} else {
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
-        window._FB = {
-          login: (e, p) => signInWithEmailAndPassword(auth, e, p),
-          register: (e, p) => createUserWithEmailAndPassword(auth, e, p),
-          logout: () => signOut(auth),
+  window._FB = {
+    login:    (e,p) => signInWithEmailAndPassword(auth, e, p),
+    register: (e,p) => createUserWithEmailAndPassword(auth, e, p),
+    logout:   ()    => signOut(auth),
 
-          addFolder: (uid, d) =>
-            addDoc(collection(db, `users/${uid}/folders`), {
-              ...d,
-              createdAt: serverTimestamp(),
-            }),
-          updateFolder: (uid, id, d) =>
-            updateDoc(doc(db, `users/${uid}/folders`, id), d),
-          deleteFolder: (uid, id) =>
-            deleteDoc(doc(db, `users/${uid}/folders`, id)),
-          getFolders: async (uid) => {
-            const s = await getDocs(collection(db, `users/${uid}/folders`));
-            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
-          },
+    addFolder:    (uid,d)    => addDoc(collection(db,`users/${uid}/folders`), {...d, createdAt: serverTimestamp()}),
+    updateFolder: (uid,id,d) => updateDoc(doc(db,`users/${uid}/folders`,id), d),
+    deleteFolder: (uid,id)   => deleteDoc(doc(db,`users/${uid}/folders`,id)),
+    getFolders:   async(uid) => {
+      const s = await getDocs(collection(db,`users/${uid}/folders`));
+      return s.docs.map(d => ({id:d.id,...d.data()}));
+    },
 
-          addVideo: (uid, d) =>
-            addDoc(collection(db, `users/${uid}/videos`), {
-              ...d,
-              addedAt: serverTimestamp(),
-            }),
-          updateVideo: (uid, id, d) =>
-            updateDoc(doc(db, `users/${uid}/videos`, id), d),
-          deleteVideo: (uid, id) =>
-            deleteDoc(doc(db, `users/${uid}/videos`, id)),
-          getVideos: async (uid) => {
-            const s = await getDocs(collection(db, `users/${uid}/videos`));
-            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
-          },
+    addVideo:    (uid,d)    => addDoc(collection(db,`users/${uid}/videos`), {...d, addedAt: serverTimestamp()}),
+    updateVideo: (uid,id,d) => updateDoc(doc(db,`users/${uid}/videos`,id), d),
+    deleteVideo: (uid,id)   => deleteDoc(doc(db,`users/${uid}/videos`,id)),
+    getVideos:   async(uid) => {
+      const s = await getDocs(collection(db,`users/${uid}/videos`));
+      return s.docs.map(d => ({id:d.id,...d.data()}));
+    },
 
-          createCode: (code, d) =>
-            setDoc(doc(db, "shareCodes", code), {
-              ...d,
-              createdAt: serverTimestamp(),
-            }),
-          getCode: async (code) => {
-            const d = await getDoc(doc(db, "shareCodes", code));
-            return d.exists() ? { id: d.id, ...d.data() } : null;
-          },
-          revokeCode: (code) => deleteDoc(doc(db, "shareCodes", code)),
-          getMyCodes: async (uid) => {
-            const s = await getDocs(
-              query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
-            );
-            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
-          },
-        };
+    createCode: (code,d) => setDoc(doc(db,'shareCodes',code), {...d, createdAt: serverTimestamp()}),
+    getCode:    async(code) => {
+      const d = await getDoc(doc(db,'shareCodes',code));
+      return d.exists() ? {id:d.id,...d.data()} : null;
+    },
+    revokeCode: (code)  => deleteDoc(doc(db,'shareCodes',code)),
+    getMyCodes: async(uid) => {
+      const s = await getDocs(query(collection(db,'shareCodes'), where('ownerUid','==',uid)));
+      return s.docs.map(d => ({id:d.id,...d.data()}));
+    },
+  };
 
-        // Connexion automatique si session Firebase active
-        onAuthStateChanged(auth, (user) => {
-          // Vérifier d'abord si un ?sharedCode= est dans l'URL
-          const urlCode = new URLSearchParams(window.location.search).get(
-            "sharedCode",
-          );
-          if (urlCode && !S.shareMode && !user) {
-            // Mode partage sans compte : on simule accessCode()
-            window._FB
-              .getCode(urlCode.toUpperCase())
-              .then((sc) => {
-                if (!sc) {
-                  showAuth();
-                  return;
-                }
-                S.shareMode = true;
-                S.shareOwner = sc.ownerUid;
-                S.uid = sc.ownerUid;
-                S.email = null;
-                gi("btnAddVideo").style.display = "none";
-                gi("btnAddFolder").style.display = "none";
-                gi("mDrawerAddVideo").style.display = "none";
-                gi("mDrawerAddFolder").style.display = "none";
-                showApp();
-                loadAll(sc).then(() =>
-                  toast("Bibliothèque partagée chargée", "info"),
-                );
-              })
-              .catch(() => showAuth());
-            return;
-          }
-          if (user) {
-            S.uid = user.uid;
-            S.email = user.email;
-            showApp();
-            // Si on est aussi porteur d'un code partagé dans l'URL, l'ignorer (on est l'owner)
-            loadAll();
-          } else if (!S.shareMode) {
-            showAuth();
-          }
-        });
-      }
-    </script>
+  // Connexion automatique si session Firebase active
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      S.uid   = user.uid;
+      S.email = user.email;
+      showApp();
+      // Si on est aussi porteur d'un code partagé dans l'URL, l'ignorer (on est l'owner)
+      loadAll();
+    } else if (!S.shareMode) {
+      showAuth();
+    }
+  });
+}
+</script>
 
-    <!-- ══════════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════════
      LOGIQUE APPLICATIVE
 ══════════════════════════════════════════════════════ -->
-    <script>
-      // ── STATE ────────────────────────────────────────────────
-      const S = {
-        uid: null,
-        email: null,
-        videos: [],
-        folders: [],
-        curFolder: null,
-        editVid: null,
-        moveVid: null,
-        ctxVid: null,
-        shareMode: false,
-        shareOwner: null,
-        collapsed: new Set(),
-      };
+<script>
+// ── STATE ────────────────────────────────────────────────
+const S = {
+  uid:null, email:null,
+  // Ma bibliothèque
+  videos:[], folders:[],
+  // Bibliothèques partagées : [{code, label, uid, videos, folders, scope, folderId}]
+  sharedLibs:[],
+  // Navigation : {libIdx: null=ma biblio, N=sharedLibs[N], folderId}
+  curLib:null,       // null = ma bibliothèque, sinon index dans sharedLibs
+  curFolder:null,
+  editVid:null, moveVid:null, ctxVid:null,
+  collapsed: new Set(),
+};
 
-      // ── ONGLETS AUTH ─────────────────────────────────────────
-      function switchTab(tab) {
-        document.querySelectorAll(".auth-tab").forEach((el, i) => {
-          el.classList.toggle(
-            "active",
-            ["login", "register", "code"][i] === tab,
-          );
-        });
-        ["panelLogin", "panelRegister", "panelCode", "panelNoFirebase"].forEach(
-          (id) => {
-            document.getElementById(id).classList.remove("active");
-          },
-        );
-        const map = {
-          login: "panelLogin",
-          register: "panelRegister",
-          code: "panelCode",
-        };
-        document.getElementById(map[tab]).classList.add("active");
-        document.getElementById("authErr").textContent = "";
+// Renvoie les vidéos + dossiers actifs selon curLib
+function activeVideos()  { return S.curLib === null ? S.videos  : (S.sharedLibs[S.curLib]?.videos  || []); }
+function activeFolders() { return S.curLib === null ? S.folders : (S.sharedLibs[S.curLib]?.folders || []); }
+function isSharedView()  { return S.curLib !== null; }
+
+// ── ONGLETS AUTH ─────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((el,i) => {
+    el.classList.toggle('active', ['login','register','code'][i] === tab);
+  });
+  ['panelLogin','panelRegister','panelCode','panelNoFirebase'].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  const map = {login:'panelLogin', register:'panelRegister', code:'panelCode'};
+  document.getElementById(map[tab]).classList.add('active');
+  document.getElementById('authErr').textContent = '';
+}
+
+// ── AUTH ACTIONS ─────────────────────────────────────────
+async function doLogin() {
+  const email = gi('lEmail').value.trim();
+  const pw    = gi('lPw').value;
+  if (!email || !pw) { authErr('Email et mot de passe requis'); return; }
+  setBtn('btnLogin', true, 'Connexion…');
+  try { await window._FB.login(email, pw); }
+  catch(e) { authErr(fmtErr(e.code)); }
+  finally { setBtn('btnLogin', false, 'Se connecter'); }
+}
+
+async function doRegister() {
+  const email = gi('rEmail').value.trim();
+  const pw    = gi('rPw').value;
+  if (!email || !pw) { authErr('Champs requis'); return; }
+  if (pw.length < 6) { authErr('Mot de passe : 6 caractères minimum'); return; }
+  setBtn('btnRegister', true, 'Création…');
+  try { await window._FB.register(email, pw); }
+  catch(e) { authErr(fmtErr(e.code)); }
+  finally { setBtn('btnRegister', false, 'Créer mon compte'); }
+}
+
+async function doLogout() {
+  await window._FB.logout();
+  Object.assign(S, {uid:null,email:null,videos:[],folders:[],sharedLibs:[],
+    curLib:null,curFolder:null,editVid:null,moveVid:null,ctxVid:null});
+  S.collapsed = new Set();
+  showAuth();
+}
+
+async function accessCode() {
+  const code = gi('shareInput').value.trim().toUpperCase();
+  if (code.length !== 8) { authErr('Code invalide — 8 caractères requis'); return; }
+  try {
+    const sc = await window._FB.getCode(code);
+    if (!sc) { authErr('Code introuvable ou révoqué.'); return; }
+    // Sans compte : on charge juste la bibliothèque partagée comme bibliothèque unique
+    S.uid = sc.ownerUid; S.email = null;
+    showApp();
+    gi('btnAddVideo').style.display    = 'none';
+    gi('btnAddFolder').style.display   = 'none';
+    gi('btnShareHdr').style.display    = 'none';
+    gi('mDrawerAddVideo').style.display  = 'none';
+    gi('mDrawerAddFolder').style.display = 'none';
+    await loadSharedLib(sc, code, true);
+    toast('Bibliothèque partagée chargée', 'info');
+  } catch(e) { authErr('Erreur : ' + e.message); }
+}
+
+function authErr(msg) { gi('authErr').textContent = msg; }
+function setBtn(id, disabled, txt) { const b=gi(id); b.disabled=disabled; b.textContent=txt; }
+function fmtErr(code) {
+  return ({
+    'auth/invalid-email':        'Email invalide.',
+    'auth/user-not-found':       'Aucun compte avec cet email.',
+    'auth/wrong-password':       'Mot de passe incorrect.',
+    'auth/email-already-in-use': 'Cet email est déjà utilisé.',
+    'auth/weak-password':        'Mot de passe trop faible.',
+    'auth/invalid-credential':   'Email ou mot de passe incorrect.',
+    'auth/too-many-requests':    'Trop de tentatives. Réessayez plus tard.',
+  }[code]) || ('Erreur : ' + code);
+}
+
+function showAuth() {
+  gi('authScreen').style.display = 'flex';
+  gi('appShell').classList.remove('on');
+}
+function showApp() {
+  gi('authScreen').style.display = 'none';
+  gi('appShell').classList.add('on');
+  gi('userChip').textContent = S.email || '';
+  gi('stTxt').textContent    = 'Connecté';
+  gi('sharedBadge').style.display = 'none';
+  gi('btnHamburger').style.display = 'flex';
+}
+
+// ── CHARGEMENT DONNÉES ───────────────────────────────────
+async function loadAll() {
+  gridSpin(true);
+  try {
+    const [vids, fols] = await Promise.all([
+      window._FB.getVideos(S.uid),
+      window._FB.getFolders(S.uid),
+    ]);
+    S.folders = fols;
+    S.videos  = vids;
+    buildTree(); renderGrid();
+  } catch(e) { toast('Erreur chargement : ' + e.message, 'err'); }
+  gridSpin(false);
+}
+
+// Charge une bibliothèque partagée et l'ajoute dans S.sharedLibs
+// asSole=true : mode sans compte (remplace la vue principale)
+async function loadSharedLib(sc, code, asSole=false) {
+  gridSpin(true);
+  try {
+    const ownerUid = sc.ownerUid;
+    const [vids, fols] = await Promise.all([
+      window._FB.getVideos(ownerUid),
+      window._FB.getFolders(ownerUid),
+    ]);
+    let filteredVids = vids;
+    let filteredFols = fols;
+    if (sc.scope === 'folder') {
+      const ids = new Set([sc.folderId, ...descFolders(sc.folderId, fols)]);
+      filteredVids = vids.filter(v => ids.has(v.folderId||''));
+      filteredFols = fols.filter(f => ids.has(f.id));
+    }
+    if (asSole) {
+      // Sans compte : remplace la bibliothèque principale
+      S.videos  = filteredVids;
+      S.folders = filteredFols;
+      S.curLib  = null;
+    } else {
+      // Avec compte : ajoute en section partagée
+      const label = sc.note || ('Partagé ' + code.substring(0,4));
+      // Eviter doublon
+      if (S.sharedLibs.find(l => l.code === code)) {
+        toast('Ce code est déjà chargé', 'info'); gridSpin(false); return;
       }
+      S.sharedLibs.push({code, label, ownerUid, videos:filteredVids, folders:filteredFols, scope:sc.scope, folderId:sc.folderId||null});
+    }
+    buildTree(); renderGrid();
+  } catch(e) { toast('Erreur chargement partagé : ' + e.message, 'err'); }
+  gridSpin(false);
+}
 
-      // ── AUTH ACTIONS ─────────────────────────────────────────
-      async function doLogin() {
-        const email = gi("lEmail").value.trim();
-        const pw = gi("lPw").value;
-        if (!email || !pw) {
-          authErr("Email et mot de passe requis");
-          return;
+// Ajouter une bibliothèque partagée depuis l'app (modal)
+async function addSharedLibFromApp() {
+  const code = gi('inAppCodeInput').value.trim().toUpperCase();
+  const errEl = gi('inAppCodeErr');
+  errEl.textContent = '';
+  if (code.length !== 8) { errEl.textContent = 'Code invalide — 8 caractères'; return; }
+  const btn = gi('inAppCodeBtn'); btn.disabled=true; btn.textContent='…';
+  try {
+    const sc = await window._FB.getCode(code);
+    if (!sc) { errEl.textContent = 'Code introuvable ou révoqué.'; return; }
+    await loadSharedLib(sc, code, false);
+    closeModal('modalAccessCode');
+    gi('inAppCodeInput').value = '';
+    toast('Bibliothèque partagée ajoutée ✓', 'ok');
+  } catch(e) { errEl.textContent = 'Erreur : ' + e.message; }
+  btn.disabled=false; btn.textContent='Accéder';
+}
+
+function removeSharedLib(idx) {
+  if (!confirm('Retirer cette bibliothèque partagée ?')) return;
+  S.sharedLibs.splice(idx, 1);
+  if (S.curLib !== null && S.curLib >= S.sharedLibs.length) {
+    S.curLib = S.sharedLibs.length > 0 ? S.sharedLibs.length-1 : null;
+  }
+  S.curFolder = null;
+  buildTree(); updateBC(); renderGrid();
+  toast('Bibliothèque retirée', 'ok');
+}
+
+// ── ARBRE DE DOSSIERS ────────────────────────────────────
+function descFolders(pid, all) {
+  return all.filter(f => f.parentId === pid).flatMap(f => [f.id, ...descFolders(f.id, all)]);
+}
+function folderDepth(id, all, d=0) {
+  const f = all.find(x => x.id === id);
+  if (!f || !f.parentId) return d;
+  return folderDepth(f.parentId, all, d+1);
+}
+
+function buildTree() {
+  _buildTreeInto('tree');
+  _buildTreeInto('mobileTree');
+}
+
+function _buildTreeInto(containerId) {
+  const t = gi(containerId);
+  t.innerHTML = '';
+
+  // ── Section "Ma bibliothèque" ──
+  const secMine = document.createElement('div');
+  secMine.className = 'tree-section-hdr';
+  secMine.innerHTML = '<span>Ma bibliothèque</span><span class="tsh-line"></span>';
+  t.appendChild(secMine);
+
+  // Nœud racine ma biblio
+  const myVids = S.videos.length;
+  t.appendChild(mkNode('Tout', null, myVids, 0, containerId, false, null));
+
+  // Dossiers de ma bibliothèque
+  (function recurse(pid, container, lvl) {
+    S.folders
+      .filter(f => (f.parentId||'') === (pid||''))
+      .sort((a,b) => (a.name||'').localeCompare(b.name||''))
+      .forEach(f => {
+        const subIds = new Set([f.id, ...descFolders(f.id, S.folders)]);
+        const cnt    = S.videos.filter(v => subIds.has(v.folderId||'')).length;
+        const hasChildren = S.folders.some(x => x.parentId === f.id) && lvl < 2;
+        const node   = mkNode(f.name, f.id, cnt, lvl, containerId, hasChildren, null);
+        container.appendChild(node);
+        if (hasChildren) {
+          const sub = document.createElement('div');
+          sub.className = 'tree-children' + (S.collapsed.has(f.id) ? ' collapsed' : '');
+          sub.id = 'tc_'+containerId+'_'+f.id;
+          recurse(f.id, sub, lvl+1);
+          container.appendChild(sub);
         }
-        setBtn("btnLogin", true, "Connexion…");
-        try {
-          await window._FB.login(email, pw);
-        } catch (e) {
-          authErr(fmtErr(e.code));
-        } finally {
-          setBtn("btnLogin", false, "Se connecter");
-        }
-      }
+      });
+  })(null, t, 0);
 
-      async function doRegister() {
-        const email = gi("rEmail").value.trim();
-        const pw = gi("rPw").value;
-        if (!email || !pw) {
-          authErr("Champs requis");
-          return;
-        }
-        if (pw.length < 6) {
-          authErr("Mot de passe : 6 caractères minimum");
-          return;
-        }
-        setBtn("btnRegister", true, "Création…");
-        try {
-          await window._FB.register(email, pw);
-        } catch (e) {
-          authErr(fmtErr(e.code));
-        } finally {
-          setBtn("btnRegister", false, "Créer mon compte");
-        }
-      }
+  // ── Sections "Bibliothèques partagées" ──
+  if (S.sharedLibs.length > 0) {
+    const secShared = document.createElement('div');
+    secShared.className = 'tree-section-hdr shared';
+    secShared.innerHTML = '<span>Partagées</span><span class="tsh-line"></span>';
+    t.appendChild(secShared);
 
-      async function doLogout() {
-        await window._FB.logout();
-        Object.assign(S, {
-          uid: null,
-          email: null,
-          videos: [],
-          folders: [],
-          curFolder: null,
-          editVid: null,
-          moveVid: null,
-          ctxVid: null,
-          shareMode: false,
-          shareOwner: null,
-        });
-        showAuth();
-      }
+    S.sharedLibs.forEach((lib, idx) => {
+      // En-tête de la bibliothèque partagée
+      const hdr = document.createElement('div');
+      hdr.className = 'shared-lib-hdr' + (S.curLib === idx && S.curFolder === null ? ' active' : '');
+      hdr.innerHTML = `
+        <span style="font-size:.85rem;flex-shrink:0;">🔗</span>
+        <span class="sl-name" title="${esc(lib.label)}">${esc(lib.label)}</span>
+        <span class="sl-cnt">${lib.videos.length}</span>
+        <button class="sl-del" onclick="removeSharedLib(${idx})" title="Retirer">✕</button>
+      `;
+      hdr.addEventListener('click', e => {
+        if (e.target.closest('.sl-del')) return;
+        navShared(idx, null);
+        if (containerId === 'mobileTree') closeMobileNav();
+      });
+      t.appendChild(hdr);
 
-      async function accessCode() {
-        const code = gi("shareInput").value.trim().toUpperCase();
-        if (code.length !== 8) {
-          authErr("Code invalide — 8 caractères requis");
-          return;
-        }
-        try {
-          const sc = await window._FB.getCode(code);
-          if (!sc) {
-            authErr("Code introuvable ou révoqué.");
-            return;
-          }
-          S.shareMode = true;
-          S.shareOwner = sc.ownerUid;
-          S.uid = sc.ownerUid;
-          S.email = null;
-          gi("btnAddVideo").style.display = "none";
-          gi("btnAddFolder").style.display = "none";
-          gi("btnShareHdr").style.display = "none";
-          gi("mDrawerAddVideo").style.display = "none";
-          gi("mDrawerAddFolder").style.display = "none";
-          showApp();
-          await loadAll(sc);
-          toast("Bibliothèque partagée chargée", "info");
-        } catch (e) {
-          authErr("Erreur : " + e.message);
-        }
-      }
+      // Dossiers de la bibliothèque partagée
+      (function recurseShared(pid, container, lvl) {
+        lib.folders
+          .filter(f => (f.parentId||'') === (pid||''))
+          .sort((a,b) => (a.name||'').localeCompare(b.name||''))
+          .forEach(f => {
+            const subIds = new Set([f.id, ...descFolders(f.id, lib.folders)]);
+            const cnt    = lib.videos.filter(v => subIds.has(v.folderId||'')).length;
+            const hasChildren = lib.folders.some(x => x.parentId === f.id) && lvl < 2;
+            const node = mkNode(f.name, f.id, cnt, lvl, containerId, hasChildren, idx);
+            container.appendChild(node);
+            if (hasChildren) {
+              const sub = document.createElement('div');
+              sub.className = 'tree-children' + (S.collapsed.has('s'+idx+f.id) ? ' collapsed' : '');
+              sub.id = 'tc_'+containerId+'_s'+idx+f.id;
+              recurseShared(f.id, sub, lvl+1);
+              container.appendChild(sub);
+            }
+          });
+      })(null, t, 0);
+    });
+  }
+}
 
-      function authErr(msg) {
-        gi("authErr").textContent = msg;
-      }
-      function setBtn(id, disabled, txt) {
-        const b = gi(id);
-        b.disabled = disabled;
-        b.textContent = txt;
-      }
-      function fmtErr(code) {
-        return (
-          {
-            "auth/invalid-email": "Email invalide.",
-            "auth/user-not-found": "Aucun compte avec cet email.",
-            "auth/wrong-password": "Mot de passe incorrect.",
-            "auth/email-already-in-use": "Cet email est déjà utilisé.",
-            "auth/weak-password": "Mot de passe trop faible.",
-            "auth/invalid-credential": "Email ou mot de passe incorrect.",
-            "auth/too-many-requests":
-              "Trop de tentatives. Réessayez plus tard.",
-          }[code] || "Erreur : " + code
-        );
-      }
-
-      function showAuth() {
-        gi("authScreen").style.display = "flex";
-        gi("appShell").classList.remove("on");
-      }
-      function showApp() {
-        gi("authScreen").style.display = "none";
-        gi("appShell").classList.add("on");
-        gi("userChip").textContent = S.email || "";
-        gi("stTxt").textContent = S.shareMode
-          ? "Bibliothèque partagée"
-          : "Connecté";
-        // Badge "lecture seule" dans le header
-        gi("sharedBadge").style.display = S.shareMode ? "inline-flex" : "none";
-        gi("btnAccessCode").style.display = S.shareMode
-          ? "none"
-          : "inline-flex";
-        gi("btnShareHdr").style.display = S.shareMode ? "none" : "inline-flex";
-        // Hamburger visible sur mobile
-        gi("btnHamburger").style.display = "flex";
-      }
-
-      // ── CHARGEMENT DONNÉES ───────────────────────────────────
-      async function loadAll(shareCode = null) {
-        gridSpin(true);
-        try {
-          const [vids, fols] = await Promise.all([
-            window._FB.getVideos(S.uid),
-            window._FB.getFolders(S.uid),
-          ]);
-          S.folders = fols;
-          if (shareCode?.scope === "folder") {
-            const ids = [
-              shareCode.folderId,
-              ...descFolders(shareCode.folderId, fols),
-            ];
-            S.videos = vids.filter((v) => ids.includes(v.folderId || ""));
-          } else {
-            S.videos = vids;
-          }
-          buildTree();
-          renderGrid();
-        } catch (e) {
-          toast("Erreur chargement : " + e.message, "err");
-        }
-        gridSpin(false);
-      }
-
-      // ── ARBRE DE DOSSIERS ────────────────────────────────────
-      function descFolders(pid, all) {
-        return all
-          .filter((f) => f.parentId === pid)
-          .flatMap((f) => [f.id, ...descFolders(f.id, all)]);
-      }
-      function folderDepth(id, all, d = 0) {
-        const f = all.find((x) => x.id === id);
-        if (!f || !f.parentId) return d;
-        return folderDepth(f.parentId, all, d + 1);
-      }
-
-      function buildTree() {
-        _buildTreeInto("tree");
-        _buildTreeInto("mobileTree");
-      }
-
-      function _buildTreeInto(containerId) {
-        const t = gi(containerId);
-        t.innerHTML = "";
-        t.appendChild(
-          mkNode("Bibliothèque", null, S.videos.length, 0, containerId),
-        );
-        (function recurse(pid, container, lvl) {
-          S.folders
-            .filter((f) => (f.parentId || "") === (pid || ""))
-            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
-            .forEach((f) => {
-              const subIds = new Set([f.id, ...descFolders(f.id, S.folders)]);
-              const cnt = S.videos.filter((v) =>
-                subIds.has(v.folderId || ""),
-              ).length;
-              const hasChildren =
-                S.folders.some((x) => x.parentId === f.id) && lvl < 2;
-              const node = mkNode(
-                f.name,
-                f.id,
-                cnt,
-                lvl,
-                containerId,
-                hasChildren,
-              );
-              container.appendChild(node);
-              if (hasChildren) {
-                const sub = document.createElement("div");
-                sub.className =
-                  "tree-children" + (S.collapsed.has(f.id) ? " collapsed" : "");
-                sub.id = "tc_" + containerId + "_" + f.id;
-                recurse(f.id, sub, lvl + 1);
-                container.appendChild(sub);
-              }
-            });
-        })(null, t, 0);
-      }
-
-      function mkNode(label, fid, cnt, lvl, containerId, hasChildren) {
-        const el = document.createElement("div");
-        el.className = "tree-item" + (S.curFolder === fid ? " active" : "");
-        const chevron = hasChildren
-          ? `<span class="ti-chevron ${S.collapsed.has(fid) ? "" : "open"}" onclick="toggleCollapse(event,'${fid}','${containerId}')">›</span>`
-          : "";
-        el.innerHTML = `
+function mkNode(label, fid, cnt, lvl, containerId, hasChildren, libIdx) {
+  const isShared   = libIdx !== null;
+  const colKey     = isShared ? 's'+libIdx+(fid||'') : (fid||'');
+  const isActive   = S.curLib === libIdx && S.curFolder === fid;
+  const el = document.createElement('div');
+  el.className = 'tree-item' + (isActive ? ' active' : '') + (isShared ? ' shared-item' : '');
+  const chevron = hasChildren
+    ? `<span class="ti-chevron ${S.collapsed.has(colKey)?'':'open'}" onclick="toggleCollapse(event,'${colKey}','${containerId}')">›</span>`
+    : '';
+  el.innerHTML = `
     ${chevron}
-    <span style="font-size:.9rem;flex-shrink:0;">${fid ? "📂" : "📁"}</span>
+    <span style="font-size:.9rem;flex-shrink:0;">${fid ? '📂' : '📁'}</span>
     <span class="ti-label">${esc(label)}</span>
     <span class="ti-count">${cnt}</span>
-    ${fid && !S.shareMode ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ""}
+    ${fid && !isShared ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ''}
   `;
-        el.addEventListener("click", (e) => {
-          if (e.target.closest(".ti-btn") || e.target.closest(".ti-chevron"))
-            return;
-          nav(fid);
-          if (containerId === "mobileTree") closeMobileNav();
-        });
-        return el;
-      }
+  el.addEventListener('click', e => {
+    if (e.target.closest('.ti-btn') || e.target.closest('.ti-chevron')) return;
+    if (isShared) navShared(libIdx, fid);
+    else nav(fid);
+    if (containerId === 'mobileTree') closeMobileNav();
+  });
+  return el;
+}
 
-      function toggleCollapse(e, fid, containerId) {
-        e.stopPropagation();
-        if (S.collapsed.has(fid)) S.collapsed.delete(fid);
-        else S.collapsed.add(fid);
-        // Toggle both trees simultaneously
-        ["tree", "mobileTree"].forEach((cid) => {
-          const sub = gi("tc_" + cid + "_" + fid);
-          const chev = document.querySelector(
-            `#${cid} .ti-chevron[onclick*="${fid}"]`,
-          );
-          if (sub) sub.classList.toggle("collapsed", S.collapsed.has(fid));
-          if (chev) chev.classList.toggle("open", !S.collapsed.has(fid));
-        });
-      }
+function toggleCollapse(e, colKey, containerId) {
+  e.stopPropagation();
+  if (S.collapsed.has(colKey)) S.collapsed.delete(colKey);
+  else S.collapsed.add(colKey);
+  ['tree','mobileTree'].forEach(cid => {
+    const sub  = gi('tc_'+cid+'_'+colKey);
+    const chev = document.querySelector(`#${cid} .ti-chevron[onclick*="'${colKey}'"]`);
+    if (sub)  sub.classList.toggle('collapsed', S.collapsed.has(colKey));
+    if (chev) chev.classList.toggle('open', !S.collapsed.has(colKey));
+  });
+}
 
-      function nav(fid) {
-        S.curFolder = fid;
-        buildTree();
-        updateBC();
-        renderGrid();
-      }
+function nav(fid) {
+  S.curLib = null; S.curFolder = fid;
+  buildTree(); updateBC(); renderGrid();
+}
+function navShared(libIdx, fid) {
+  S.curLib = libIdx; S.curFolder = fid;
+  buildTree(); updateBC(); renderGrid();
+}
 
-      function updateBC() {
-        const bc = gi("breadcrumb");
-        bc.innerHTML = "";
-        const add = (lbl, fid) => {
-          const s = document.createElement("span");
-          s.className = "bc" + (S.curFolder === fid ? " bc-active" : "");
-          s.textContent = lbl;
-          s.onclick = () => nav(fid);
-          bc.appendChild(s);
-        };
-        const sep = () => {
-          const s = document.createElement("span");
-          s.className = "bc-sep";
-          s.textContent = " / ";
-          bc.appendChild(s);
-        };
-        add("Bibliothèque", null);
-        if (S.curFolder) {
-          (function getPath(id) {
-            const f = S.folders.find((x) => x.id === id);
-            if (!f) return;
-            if (f.parentId) getPath(f.parentId);
-            sep();
-            add(f.name, f.id);
-          })(S.curFolder);
-        }
-      }
+function updateBC() {
+  const bc   = gi('breadcrumb');
+  bc.innerHTML = '';
+  const fols = activeFolders();
+  const add  = (lbl, onclick) => {
+    const s = document.createElement('span');
+    s.className = 'bc'; s.textContent = lbl; s.onclick = onclick;
+    bc.appendChild(s);
+  };
+  const addActive = (lbl) => {
+    const s = document.createElement('span');
+    s.className = 'bc bc-active'; s.textContent = lbl;
+    bc.appendChild(s);
+  };
+  const sep  = () => {
+    const s = document.createElement('span');
+    s.className = 'bc-sep'; s.textContent = ' / '; bc.appendChild(s);
+  };
 
-      function folderMenu(e, fid) {
-        e.stopPropagation();
-        const f = S.folders.find((x) => x.id === fid);
-        if (!f) return;
-        const action = prompt(
-          `Dossier : "${f.name}"\n\nTapez un nouveau nom pour renommer,\nou tapez SUPPRIMER pour supprimer :`,
-        );
-        if (action === null) return;
-        if (action.trim().toUpperCase() === "SUPPRIMER") {
-          if (
-            !confirm(
-              `Supprimer "${f.name}" ? Les vidéos resteront à la racine.`,
-            )
-          )
-            return;
-          S.videos
-            .filter((v) => v.folderId === fid)
-            .forEach((v) => {
-              window._FB.updateVideo(S.uid, v.id, { folderId: "" });
-              v.folderId = "";
-            });
-          window._FB.deleteFolder(S.uid, fid);
-          S.folders = S.folders.filter((x) => x.id !== fid);
-          if (S.curFolder === fid) S.curFolder = null;
-          buildTree();
-          renderGrid();
-          toast("Dossier supprimé", "ok");
-        } else if (action.trim()) {
-          window._FB.updateFolder(S.uid, fid, { name: action.trim() });
-          f.name = action.trim();
-          buildTree();
-          toast("Dossier renommé", "ok");
-        }
-      }
+  if (S.curLib === null) {
+    // Ma bibliothèque
+    if (!S.curFolder) { addActive('Bibliothèque'); }
+    else {
+      add('Bibliothèque', () => nav(null));
+      (function getPath(id) {
+        const f = fols.find(x => x.id === id); if (!f) return;
+        if (f.parentId) getPath(f.parentId);
+        sep();
+        if (f.id === S.curFolder) addActive(f.name);
+        else add(f.name, () => nav(f.id));
+      })(S.curFolder);
+    }
+  } else {
+    // Bibliothèque partagée
+    const lib = S.sharedLibs[S.curLib];
+    add('Bibliothèque', () => nav(null));
+    sep();
+    if (!S.curFolder) { addActive('🔗 ' + (lib?.label||'Partagée')); }
+    else {
+      add('🔗 ' + (lib?.label||'Partagée'), () => navShared(S.curLib, null));
+      (function getPath(id) {
+        const f = fols.find(x => x.id === id); if (!f) return;
+        if (f.parentId) getPath(f.parentId);
+        sep();
+        if (f.id === S.curFolder) addActive(f.name);
+        else add(f.name, () => navShared(S.curLib, f.id));
+      })(S.curFolder);
+    }
+  }
+}
 
-      // ── GRILLE VIDÉOS ────────────────────────────────────────
-      function renderGrid() {
-        const q = gi("search").value.toLowerCase();
-        const sort = gi("sortSel").value;
-        const fid = S.curFolder;
+function folderMenu(e, fid) {
+  e.stopPropagation();
+  const f = S.folders.find(x => x.id === fid); if (!f) return;
+  const action = prompt(`Dossier : "${f.name}"\n\nTapez un nouveau nom pour renommer,\nou tapez SUPPRIMER pour supprimer :`);
+  if (action === null) return;
+  if (action.trim().toUpperCase() === 'SUPPRIMER') {
+    if (!confirm(`Supprimer "${f.name}" ? Les vidéos resteront à la racine.`)) return;
+    S.videos.filter(v => v.folderId === fid).forEach(v => {
+      window._FB.updateVideo(S.uid, v.id, {folderId:''});
+      v.folderId = '';
+    });
+    window._FB.deleteFolder(S.uid, fid);
+    S.folders = S.folders.filter(x => x.id !== fid);
+    if (S.curFolder === fid) S.curFolder = null;
+    buildTree(); renderGrid(); toast('Dossier supprimé', 'ok');
+  } else if (action.trim()) {
+    window._FB.updateFolder(S.uid, fid, {name: action.trim()});
+    f.name = action.trim();
+    buildTree(); toast('Dossier renommé', 'ok');
+  }
+}
 
-        // Dossier courant + tous ses sous-dossiers (récursif)
-        const visibleFids =
-          fid === null ? null : new Set([fid, ...descFolders(fid, S.folders)]);
+// ── GRILLE VIDÉOS ────────────────────────────────────────
+function renderGrid() {
+  const q    = gi('search').value.toLowerCase();
+  const sort = gi('sortSel').value;
+  const fid  = S.curFolder;
+  const vids = activeVideos();
+  const fols = activeFolders();
 
-        let list = S.videos.filter((vid) => {
-          const inF =
-            visibleFids === null || visibleFids.has(vid.folderId || "");
-          const mQ =
-            !q ||
-            (vid.title || "").toLowerCase().includes(q) ||
-            (vid.category || "").toLowerCase().includes(q) ||
-            (vid.notes || "").toLowerCase().includes(q);
-          return inF && mQ;
-        });
+  // Dossier courant + tous ses sous-dossiers (récursif)
+  const visibleFids = fid === null
+    ? null
+    : new Set([fid, ...descFolders(fid, fols)]);
 
-        list = [...list].sort((a, b) => {
-          if (sort === "addedDesc") return ts(b.addedAt) - ts(a.addedAt);
-          if (sort === "addedAsc") return ts(a.addedAt) - ts(b.addedAt);
-          if (sort === "pubDesc") return ts(b.publishedAt) - ts(a.publishedAt);
-          if (sort === "pubAsc") return ts(a.publishedAt) - ts(b.publishedAt);
-          if (sort === "titleAsc")
-            return (a.title || "").localeCompare(b.title || "");
-          if (sort === "titleDesc")
-            return (b.title || "").localeCompare(a.title || "");
-          return 0;
-        });
+  let list = vids.filter(vid => {
+    const inF = visibleFids === null || visibleFids.has(vid.folderId || '');
+    const mQ  = !q || (vid.title||'').toLowerCase().includes(q)
+                   || (vid.category||'').toLowerCase().includes(q)
+                   || (vid.notes||'').toLowerCase().includes(q);
+    return inF && mQ;
+  });
 
-        gi("cnt").textContent = list.length;
-        const grid = gi("grid");
-        [...grid.querySelectorAll(".card,.empty,.spin-wrap")].forEach((el) =>
-          el.remove(),
-        );
+  list = [...list].sort((a,b) => {
+    if (sort==='addedDesc')  return ts(b.addedAt) - ts(a.addedAt);
+    if (sort==='addedAsc')   return ts(a.addedAt) - ts(b.addedAt);
+    if (sort==='pubDesc')    return ts(b.publishedAt) - ts(a.publishedAt);
+    if (sort==='pubAsc')     return ts(a.publishedAt) - ts(b.publishedAt);
+    if (sort==='titleAsc')   return (a.title||'').localeCompare(b.title||'');
+    if (sort==='titleDesc')  return (b.title||'').localeCompare(a.title||'');
+    return 0;
+  });
 
-        if (!list.length) {
-          const el = document.createElement("div");
-          el.className = "empty";
-          el.innerHTML = `<div class="empty-g">▶</div>
-      <div class="empty-t">${q ? "Aucun résultat" : "Vide"}</div>
-      <div class="empty-s">${q ? "Modifiez la recherche." : 'Ajoutez votre première vidéo avec "+ Vidéo".'}</div>`;
-          grid.appendChild(el);
-          return;
-        }
+  gi('cnt').textContent = list.length;
+  const grid = gi('grid');
+  [...grid.querySelectorAll('.card,.empty,.spin-wrap')].forEach(el => el.remove());
 
-        list.forEach((vid, i) => {
-          const c = document.createElement("div");
-          c.className = "card";
-          c.style.animationDelay = `${i * 28}ms`;
-          const dateLabel =
-            sort.startsWith("pub") && vid.publishedAt
-              ? "📅 " + fmtDate(vid.publishedAt)
-              : "+ " + fmtTs(vid.addedAt);
-          c.innerHTML = `
+  if (!list.length) {
+    const el = document.createElement('div'); el.className='empty';
+    el.innerHTML=`<div class="empty-g">▶</div>
+      <div class="empty-t">${q ? 'Aucun résultat' : 'Vide'}</div>
+      <div class="empty-s">${q ? 'Modifiez la recherche.' : 'Ajoutez votre première vidéo avec "+ Vidéo".'}</div>`;
+    grid.appendChild(el); return;
+  }
+
+  list.forEach((vid, i) => {
+    const c = document.createElement('div');
+    c.className='card'; c.style.animationDelay=`${i*28}ms`;
+    const dateLabel = sort.startsWith('pub') && vid.publishedAt
+      ? '📅 '+fmtDate(vid.publishedAt)
+      : '+ '+fmtTs(vid.addedAt);
+    c.innerHTML=`
       <div class="thumb">
         <img src="https://img.youtube.com/vi/${vid.ytId}/mqdefault.jpg" loading="lazy"
           onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 320 180\'><rect width=\'320\' height=\'180\' fill=\'%230a0b10\'/><text x=\'160\' y=\'100\' text-anchor=\'middle\' fill=\'%231c1f2b\' font-size=\'48\' font-family=\'sans-serif\'>▶</text></svg>'" alt="">
         <div class="play-ring"><div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
-        ${vid.category ? `<span class="cpill2">${esc(vid.category)}</span>` : ""}
+        ${vid.category ? `<span class="cpill2">${esc(vid.category)}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-title" title="${esc(vid.title)}">${esc(vid.title)}</div>
         <div class="card-foot">
           <span class="card-date">${dateLabel}</span>
-          ${
-            !S.shareMode
-              ? `
+          ${!isSharedView() ? `
           <button class="ca" title="Modifier" onclick="openEditModal('${vid.id}',event)">
             <svg viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"/></svg>
           </button>
           <button class="ca" title="Plus…" onclick="openCtx('${vid.id}',event)">
             <svg viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-          </button>`
-              : ""
-          }
+          </button>` : ''}
         </div>
       </div>`;
-          c.querySelector(".thumb").addEventListener("click", () =>
-            window.open(vid.url, "_blank", "noopener"),
-          );
-          grid.appendChild(c);
-        });
-      }
+    c.querySelector('.thumb').addEventListener('click', () => window.open(vid.url,'_blank','noopener'));
+    grid.appendChild(c);
+  });
+}
 
-      // ── PRÉVISUALISATION MINIATURE ───────────────────────────
-      function previewThumb() {
-        const ytId = extractYtId(gi("vmUrl").value);
-        const wrap = gi("thumbPreviewWrap");
-        if (ytId) {
-          wrap.style.display = "block";
-          gi("thumbPreview").src =
-            `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
-        } else {
-          wrap.style.display = "none";
-        }
-      }
+// ── PRÉVISUALISATION MINIATURE ───────────────────────────
+function previewThumb() {
+  const ytId = extractYtId(gi('vmUrl').value);
+  const wrap = gi('thumbPreviewWrap');
+  if (ytId) { wrap.style.display='block'; gi('thumbPreview').src=`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`; }
+  else       { wrap.style.display='none'; }
+}
 
-      // ── MODAL VIDÉO ──────────────────────────────────────────
-      function fillFolderSel(selId, currentFid = "") {
-        const sel = gi(selId);
-        sel.innerHTML = '<option value="">— Racine —</option>';
-        S.folders
-          .filter((f) => folderDepth(f.id, S.folders) < 3)
-          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
-          .forEach((f) => {
-            const d = folderDepth(f.id, S.folders);
-            const o = document.createElement("option");
-            o.value = f.id;
-            o.textContent = "\u3000".repeat(d) + "📂 " + f.name;
-            if (f.id === currentFid) o.selected = true;
-            sel.appendChild(o);
-          });
-      }
+// ── MODAL VIDÉO ──────────────────────────────────────────
+function fillFolderSel(selId, currentFid='') {
+  const sel = gi(selId);
+  sel.innerHTML = '<option value="">— Racine —</option>';
+  S.folders
+    .filter(f => folderDepth(f.id, S.folders) < 3)
+    .sort((a,b) => (a.name||'').localeCompare(b.name||''))
+    .forEach(f => {
+      const d = folderDepth(f.id, S.folders);
+      const o = document.createElement('option');
+      o.value = f.id; o.textContent = '\u3000'.repeat(d) + '📂 ' + f.name;
+      if (f.id === currentFid) o.selected = true;
+      sel.appendChild(o);
+    });
+}
 
-      function openVideoModal() {
-        S.editVid = null;
-        gi("videoModalTitle").textContent = "Nouvelle vidéo";
-        gi("vmSaveBtn").textContent = "Enregistrer";
-        ["vmUrl", "vmTitle", "vmCat", "vmNotes"].forEach(
-          (id) => (gi(id).value = ""),
-        );
-        gi("vmPub").value = "";
-        gi("thumbPreviewWrap").style.display = "none";
-        fillFolderSel("vmFolder", S.curFolder || "");
-        openModal("modalVideo");
-        setTimeout(() => gi("vmUrl").focus(), 80);
-      }
+function openVideoModal() {
+  S.editVid = null;
+  gi('videoModalTitle').textContent = 'Nouvelle vidéo';
+  gi('vmSaveBtn').textContent = 'Enregistrer';
+  ['vmUrl','vmTitle','vmCat','vmNotes'].forEach(id => gi(id).value='');
+  gi('vmPub').value = '';
+  gi('thumbPreviewWrap').style.display = 'none';
+  fillFolderSel('vmFolder', S.curFolder||'');
+  openModal('modalVideo');
+  setTimeout(() => gi('vmUrl').focus(), 80);
+}
 
-      function openEditModal(vidId, e) {
-        if (e) e.stopPropagation();
-        const vid = S.videos.find((x) => x.id === vidId);
-        if (!vid) return;
-        S.editVid = vidId;
-        gi("videoModalTitle").textContent = "Modifier la vidéo";
-        gi("vmSaveBtn").textContent = "Mettre à jour";
-        gi("vmUrl").value = vid.url || "";
-        gi("vmTitle").value = vid.title || "";
-        gi("vmCat").value = vid.category || "";
-        gi("vmNotes").value = vid.notes || "";
-        gi("vmPub").value = vid.publishedAt
-          ? String(vid.publishedAt).substring(0, 10)
-          : "";
-        fillFolderSel("vmFolder", vid.folderId || "");
-        previewThumb();
-        openModal("modalVideo");
-      }
+function openEditModal(vidId, e) {
+  if (e) e.stopPropagation();
+  const vid = S.videos.find(x => x.id === vidId); if (!vid) return;
+  S.editVid = vidId;
+  gi('videoModalTitle').textContent = 'Modifier la vidéo';
+  gi('vmSaveBtn').textContent = 'Mettre à jour';
+  gi('vmUrl').value   = vid.url||'';
+  gi('vmTitle').value = vid.title||'';
+  gi('vmCat').value   = vid.category||'';
+  gi('vmNotes').value = vid.notes||'';
+  gi('vmPub').value   = vid.publishedAt ? String(vid.publishedAt).substring(0,10) : '';
+  fillFolderSel('vmFolder', vid.folderId||'');
+  previewThumb();
+  openModal('modalVideo');
+}
 
-      async function saveVideo() {
-        const url = gi("vmUrl").value.trim();
-        const title = gi("vmTitle").value.trim();
-        const cat = gi("vmCat").value.trim();
-        const notes = gi("vmNotes").value.trim();
-        const pub = gi("vmPub").value;
-        const fid = gi("vmFolder").value;
-        const ytId = extractYtId(url);
-        if (!url || !title) {
-          toast("URL et titre requis", "err");
-          return;
-        }
-        if (!ytId) {
-          toast("URL YouTube invalide", "err");
-          return;
-        }
+async function saveVideo() {
+  const url   = gi('vmUrl').value.trim();
+  const title = gi('vmTitle').value.trim();
+  const cat   = gi('vmCat').value.trim();
+  const notes = gi('vmNotes').value.trim();
+  const pub   = gi('vmPub').value;
+  const fid   = gi('vmFolder').value;
+  const ytId  = extractYtId(url);
+  if (!url || !title) { toast('URL et titre requis', 'err'); return; }
+  if (!ytId) { toast('URL YouTube invalide', 'err'); return; }
 
-        const btn = gi("vmSaveBtn");
-        btn.disabled = true;
-        btn.textContent = "…";
-        const data = {
-          url,
-          ytId,
-          title,
-          category: cat,
-          notes,
-          folderId: fid,
-          publishedAt: pub || null,
-        };
-        try {
-          if (S.editVid) {
-            await window._FB.updateVideo(S.uid, S.editVid, data);
-            const idx = S.videos.findIndex((x) => x.id === S.editVid);
-            if (idx !== -1) S.videos[idx] = { ...S.videos[idx], ...data };
-            toast("Vidéo mise à jour ✓", "ok");
-          } else {
-            const ref = await window._FB.addVideo(S.uid, data);
-            S.videos.unshift({
-              id: ref.id,
-              ...data,
-              addedAt: new Date().toISOString(),
-            });
-            toast("Vidéo ajoutée ✓", "ok");
-          }
-          buildTree();
-          renderGrid();
-          closeModal("modalVideo");
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
-        }
-        btn.disabled = false;
-        btn.textContent = S.editVid ? "Mettre à jour" : "Enregistrer";
-      }
+  const btn = gi('vmSaveBtn');
+  btn.disabled = true; btn.textContent = '…';
+  const data = {url, ytId, title, category:cat, notes, folderId:fid, publishedAt:pub||null};
+  try {
+    if (S.editVid) {
+      await window._FB.updateVideo(S.uid, S.editVid, data);
+      const idx = S.videos.findIndex(x => x.id === S.editVid);
+      if (idx !== -1) S.videos[idx] = {...S.videos[idx], ...data};
+      toast('Vidéo mise à jour ✓', 'ok');
+    } else {
+      const ref = await window._FB.addVideo(S.uid, data);
+      S.videos.unshift({id:ref.id, ...data, addedAt:new Date().toISOString()});
+      toast('Vidéo ajoutée ✓', 'ok');
+    }
+    buildTree(); renderGrid(); closeModal('modalVideo');
+  } catch(e) { toast('Erreur : '+e.message, 'err'); }
+  btn.disabled = false; btn.textContent = S.editVid ? 'Mettre à jour' : 'Enregistrer';
+}
 
-      async function deleteVideo(vidId) {
-        if (!confirm("Supprimer cette vidéo ?")) return;
-        try {
-          await window._FB.deleteVideo(S.uid, vidId);
-          S.videos = S.videos.filter((x) => x.id !== vidId);
-          buildTree();
-          renderGrid();
-          toast("Vidéo supprimée", "ok");
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
-        }
-      }
+async function deleteVideo(vidId) {
+  if (!confirm('Supprimer cette vidéo ?')) return;
+  try {
+    await window._FB.deleteVideo(S.uid, vidId);
+    S.videos = S.videos.filter(x => x.id !== vidId);
+    buildTree(); renderGrid(); toast('Vidéo supprimée', 'ok');
+  } catch(e) { toast('Erreur : '+e.message, 'err'); }
+}
 
-      // ── MODAL DOSSIER ────────────────────────────────────────
-      function openFolderModal() {
-        gi("fmName").value = "";
-        fillFolderSel("fmParent", "");
-        [...gi("fmParent").options].forEach((o) => {
-          if (o.value && folderDepth(o.value, S.folders) >= 2) {
-            o.disabled = true;
-            o.textContent += " (niveau max)";
-          }
-        });
-        openModal("modalFolder");
-        setTimeout(() => gi("fmName").focus(), 80);
-      }
+// ── MODAL DOSSIER ────────────────────────────────────────
+function openFolderModal() {
+  gi('fmName').value = '';
+  fillFolderSel('fmParent', '');
+  [...gi('fmParent').options].forEach(o => {
+    if (o.value && folderDepth(o.value, S.folders) >= 2) {
+      o.disabled = true; o.textContent += ' (niveau max)';
+    }
+  });
+  openModal('modalFolder');
+  setTimeout(() => gi('fmName').focus(), 80);
+}
 
-      async function saveFolder() {
-        const name = gi("fmName").value.trim();
-        const pid = gi("fmParent").value;
-        if (!name) {
-          toast("Nom requis", "err");
-          return;
-        }
-        if (pid && folderDepth(pid, S.folders) >= 2) {
-          toast("Niveau maximum (3 niveaux)", "err");
-          return;
-        }
-        try {
-          const ref = await window._FB.addFolder(S.uid, {
-            name,
-            parentId: pid,
-          });
-          S.folders.push({ id: ref.id, name, parentId: pid });
-          buildTree();
-          closeModal("modalFolder");
-          toast("Dossier créé ✓", "ok");
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
-        }
-      }
+async function saveFolder() {
+  const name = gi('fmName').value.trim();
+  const pid  = gi('fmParent').value;
+  if (!name) { toast('Nom requis', 'err'); return; }
+  if (pid && folderDepth(pid, S.folders) >= 2) { toast('Niveau maximum (3 niveaux)', 'err'); return; }
+  try {
+    const ref = await window._FB.addFolder(S.uid, {name, parentId:pid});
+    S.folders.push({id:ref.id, name, parentId:pid});
+    buildTree(); closeModal('modalFolder'); toast('Dossier créé ✓', 'ok');
+  } catch(e) { toast('Erreur : '+e.message, 'err'); }
+}
 
-      // ── MODAL DÉPLACER ───────────────────────────────────────
-      function openMoveModal(vidId) {
-        S.moveVid = vidId;
-        const vid = S.videos.find((x) => x.id === vidId);
-        gi("movingLabel").textContent = vid?.title || "";
-        fillFolderSel("moveTarget", vid?.folderId || "");
-        openModal("modalMove");
-      }
+// ── MODAL DÉPLACER ───────────────────────────────────────
+function openMoveModal(vidId) {
+  if (isSharedView()) { toast('Impossible de modifier une bibliothèque partagée', 'err'); return; }
+  S.moveVid = vidId;
+  const vid = S.videos.find(x => x.id === vidId);
+  gi('movingLabel').textContent = vid?.title || '';
+  fillFolderSel('moveTarget', vid?.folderId||'');
+  openModal('modalMove');
+}
 
-      async function confirmMove() {
-        const target = gi("moveTarget").value;
-        if (!S.moveVid) return;
-        try {
-          await window._FB.updateVideo(S.uid, S.moveVid, { folderId: target });
-          const vid = S.videos.find((x) => x.id === S.moveVid);
-          if (vid) vid.folderId = target;
-          buildTree();
-          renderGrid();
-          closeModal("modalMove");
-          toast("Vidéo déplacée ✓", "ok");
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
-        }
-      }
+async function confirmMove() {
+  const target = gi('moveTarget').value;
+  if (!S.moveVid) return;
+  try {
+    await window._FB.updateVideo(S.uid, S.moveVid, {folderId:target});
+    const vid = S.videos.find(x => x.id === S.moveVid);
+    if (vid) vid.folderId = target;
+    buildTree(); renderGrid(); closeModal('modalMove'); toast('Vidéo déplacée ✓', 'ok');
+  } catch(e) { toast('Erreur : '+e.message, 'err'); }
+}
 
-      // ── CONTEXT MENU ─────────────────────────────────────────
-      function openCtx(vidId, e) {
-        e.stopPropagation();
-        S.ctxVid = vidId;
-        const ctx = gi("ctx");
-        ctx.classList.add("on");
-        ctx.style.left = Math.min(e.clientX, window.innerWidth - 180) + "px";
-        ctx.style.top = Math.min(e.clientY, window.innerHeight - 130) + "px";
-      }
-      document.addEventListener("click", () =>
-        gi("ctx").classList.remove("on"),
-      );
-      function ctxDo(a) {
-        const id = S.ctxVid;
-        if (!id) return;
-        if (a === "edit") openEditModal(id);
-        if (a === "move") openMoveModal(id);
-        if (a === "delete") deleteVideo(id);
-      }
+// ── CONTEXT MENU ─────────────────────────────────────────
+function openCtx(vidId, e) {
+  e.stopPropagation();
+  S.ctxVid = vidId;
+  const ctx = gi('ctx'); ctx.classList.add('on');
+  ctx.style.left = Math.min(e.clientX, window.innerWidth  - 180) + 'px';
+  ctx.style.top  = Math.min(e.clientY, window.innerHeight - 130) + 'px';
+}
+document.addEventListener('click', () => gi('ctx').classList.remove('on'));
+function ctxDo(a) {
+  const id = S.ctxVid; if (!id) return;
+  if (a==='edit')   openEditModal(id);
+  if (a==='move')   openMoveModal(id);
+  if (a==='delete') deleteVideo(id);
+}
 
-      // ── MODAL PARTAGE ────────────────────────────────────────
-      function toggleShareFolder() {
-        gi("shareFolderWrap").style.display =
-          gi("shareScope").value === "folder" ? "block" : "none";
-      }
+// ── MODAL PARTAGE ────────────────────────────────────────
+function toggleShareFolder() {
+  gi('shareFolderWrap').style.display = gi('shareScope').value==='folder' ? 'block' : 'none';
+}
 
-      async function openShareModal() {
-        fillFolderSel("shareFolder", "");
-        gi("newCodeWrap").style.display = "none";
-        gi("shareNote").value = "";
-        gi("shareScope").value = "all";
-        toggleShareFolder();
-        const list = gi("shareList");
-        list.innerHTML =
-          '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
-        openModal("modalShare");
-        try {
-          const codes = await window._FB.getMyCodes(S.uid);
-          list.innerHTML = "";
-          if (!codes.length) {
-            list.innerHTML =
-              '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun code actif</div>';
-            return;
-          }
-          codes.forEach((sc) => {
-            const f = S.folders.find((x) => x.id === sc.folderId);
-            const row = document.createElement("div");
-            row.className = "share-row";
-            row.innerHTML = `
+async function openShareModal() {
+  fillFolderSel('shareFolder','');
+  gi('newCodeWrap').style.display = 'none';
+  gi('shareNote').value = '';
+  gi('shareScope').value = 'all';
+  toggleShareFolder();
+  const list = gi('shareList');
+  list.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
+  openModal('modalShare');
+  try {
+    const codes = await window._FB.getMyCodes(S.uid);
+    list.innerHTML = '';
+    if (!codes.length) {
+      list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun code actif</div>';
+      return;
+    }
+    codes.forEach(sc => {
+      const f   = S.folders.find(x => x.id===sc.folderId);
+      const row = document.createElement('div'); row.className='share-row';
+      row.innerHTML=`
         <span class="sr-code">${sc.id}</span>
-        <span class="sr-scope">${sc.scope === "folder" ? "📂 " + (f?.name || "?") : "🌐 Tout"}</span>
-        ${sc.note ? `<span style="color:var(--muted);font-size:.68rem;">${esc(sc.note)}</span>` : ""}
+        <span class="sr-scope">${sc.scope==='folder' ? '📂 '+(f?.name||'?') : '🌐 Tout'}</span>
+        ${sc.note ? `<span style="color:var(--muted);font-size:.68rem;">${esc(sc.note)}</span>` : ''}
         <button class="sr-del" onclick="revokeCode('${sc.id}',this)" title="Révoquer">
           <svg viewBox="0 0 16 16" style="width:12px;height:12px;fill:currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
         </button>`;
-            list.appendChild(row);
-          });
-        } catch (e) {
-          list.innerHTML =
-            '<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur chargement</div>';
-        }
-      }
+      list.appendChild(row);
+    });
+  } catch(e) { list.innerHTML='<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur chargement</div>'; }
+}
 
-      async function generateCode() {
-        const scope = gi("shareScope").value;
-        const fid = gi("shareFolder").value;
-        const note = gi("shareNote").value.trim();
-        if (scope === "folder" && !fid) {
-          toast("Choisissez un dossier", "err");
-          return;
-        }
-        const code = mkCode(8);
-        const data = { ownerUid: S.uid, scope, note };
-        if (scope === "folder") data.folderId = fid;
-        try {
-          await window._FB.createCode(code, data);
-          gi("newCodeDisplay").textContent = code;
-          gi("newCodeWrap").style.display = "block";
-          toast("Code créé — cliquez pour copier", "ok");
-          openShareModal();
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
-        }
-      }
+async function generateCode() {
+  const scope = gi('shareScope').value;
+  const fid   = gi('shareFolder').value;
+  const note  = gi('shareNote').value.trim();
+  if (scope==='folder' && !fid) { toast('Choisissez un dossier', 'err'); return; }
+  const code = mkCode(8);
+  const data = {ownerUid:S.uid, scope, note};
+  if (scope==='folder') data.folderId = fid;
+  try {
+    await window._FB.createCode(code, data);
+    gi('newCodeDisplay').textContent = code;
+    gi('newCodeWrap').style.display = 'block';
+    toast('Code créé — cliquez pour copier', 'ok');
+    openShareModal();
+  } catch(e) { toast('Erreur : '+e.message, 'err'); }
+}
 
-      async function revokeCode(code, btn) {
-        if (!confirm("Révoquer ce code ?")) return;
-        try {
-          await window._FB.revokeCode(code);
-          btn.closest(".share-row").remove();
-          toast("Code révoqué", "ok");
-        } catch (e) {
-          toast("Erreur révocation", "err");
-        }
-      }
+async function revokeCode(code, btn) {
+  if (!confirm('Révoquer ce code ?')) return;
+  try {
+    await window._FB.revokeCode(code);
+    btn.closest('.share-row').remove();
+    toast('Code révoqué', 'ok');
+  } catch(e) { toast('Erreur révocation', 'err'); }
+}
 
-      function copyCode(code) {
-        navigator.clipboard
-          .writeText(code)
-          .then(() => toast("Code copié !", "info"));
-      }
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => toast('Code copié !', 'info'));
+}
 
-      function mkCode(len) {
-        const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        return Array.from(
-          { length: len },
-          () => c[Math.floor(Math.random() * c.length)],
-        ).join("");
-      }
+function mkCode(len) {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:len}, () => c[Math.floor(Math.random()*c.length)]).join('');
+}
 
-      // ── EXPORT JSON ──────────────────────────────────────────
-      function exportJSON() {
-        const data = {
-          exportedAt: new Date().toISOString(),
-          user: S.email,
-          folders: S.folders,
-          videos: S.videos,
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], {
-          type: "application/json",
-        });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `videovault-${new Date().toISOString().substring(0, 10)}.json`;
-        a.click();
-        toast("Export téléchargé ✓", "ok");
-      }
+// ── EXPORT JSON ──────────────────────────────────────────
+function exportJSON() {
+  const data = {exportedAt:new Date().toISOString(), user:S.email, folders:S.folders, videos:S.videos};
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `videovault-${new Date().toISOString().substring(0,10)}.json`;
+  a.click(); toast('Export téléchargé ✓', 'ok');
+}
 
-      // ── IMPORT JSON ───────────────────────────────────────────
-      let _importData = null;
+// ── IMPORT JSON ───────────────────────────────────────────
+let _importData = null;
 
-      gi("importFile") &&
-        gi("importFile").addEventListener("change", function () {
-          _importData = null;
-          gi("importBtn").disabled = true;
-          gi("importPreview").style.display = "none";
-          const file = this.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            try {
-              const data = JSON.parse(e.target.result);
-              const vids = data.videos || [];
-              const fols = data.folders || [];
-              // Dédoublonnage par URL
-              const existingUrls = new Set(S.videos.map((v) => v.url));
-              const newVids = vids.filter(
-                (v) => v.url && !existingUrls.has(v.url),
-              );
-              const existingFolNames = new Set(S.folders.map((f) => f.name));
-              const newFols = fols.filter(
-                (f) => f.name && !existingFolNames.has(f.name),
-              );
-              _importData = { newVids, newFols, allFols: fols };
-              gi("importPreview").style.display = "block";
-              gi("importPreview").innerHTML =
-                `<b style="color:var(--text);">${newVids.length}</b> vidéo(s) à importer (${vids.length - newVids.length} doublon(s) ignoré(s))<br>` +
-                `<b style="color:var(--text);">${newFols.length}</b> dossier(s) à importer`;
-              gi("importBtn").disabled =
-                newVids.length === 0 && newFols.length === 0;
-            } catch (err) {
-              gi("importPreview").style.display = "block";
-              gi("importPreview").textContent =
-                "❌ Fichier JSON invalide : " + err.message;
-            }
-          };
-          reader.readAsText(file);
-        });
+gi('importFile') && gi('importFile').addEventListener('change', function() {
+  _importData = null;
+  gi('importBtn').disabled = true;
+  gi('importPreview').style.display = 'none';
+  const file = this.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const vids = data.videos || [];
+      const fols = data.folders || [];
+      // Dédoublonnage par URL
+      const existingUrls = new Set(S.videos.map(v => v.url));
+      const newVids = vids.filter(v => v.url && !existingUrls.has(v.url));
+      const existingFolNames = new Set(S.folders.map(f => f.name));
+      const newFols = fols.filter(f => f.name && !existingFolNames.has(f.name));
+      _importData = {newVids, newFols, allFols: fols};
+      gi('importPreview').style.display = 'block';
+      gi('importPreview').innerHTML =
+        `<b style="color:var(--text);">${newVids.length}</b> vidéo(s) à importer (${vids.length-newVids.length} doublon(s) ignoré(s))<br>` +
+        `<b style="color:var(--text);">${newFols.length}</b> dossier(s) à importer`;
+      gi('importBtn').disabled = newVids.length === 0 && newFols.length === 0;
+    } catch(err) {
+      gi('importPreview').style.display = 'block';
+      gi('importPreview').textContent = '❌ Fichier JSON invalide : ' + err.message;
+    }
+  };
+  reader.readAsText(file);
+});
 
-      async function doImport() {
-        if (!_importData) return;
-        const btn = gi("importBtn");
-        btn.disabled = true;
-        btn.textContent = "Import…";
+async function doImport() {
+  if (!_importData) return;
+  const btn = gi('importBtn'); btn.disabled=true; btn.textContent='Import…';
 
-        const { newVids, newFols, allFols } = _importData;
+  const {newVids, newFols, allFols} = _importData;
 
-        // Map old folder IDs → new IDs
-        const folderIdMap = {};
+  // Map old folder IDs → new IDs
+  const folderIdMap = {};
 
-        // Import dossiers (racine d'abord, puis enfants)
-        const sorted = [...newFols].sort((a, b) => {
-          const da = allFols.find((x) => x.id === a.parentId) ? 1 : 0;
-          const db = allFols.find((x) => x.id === b.parentId) ? 1 : 0;
-          return da - db;
-        });
+  // Import dossiers (racine d'abord, puis enfants)
+  const sorted = [...newFols].sort((a,b) => {
+    const da = allFols.find(x=>x.id===a.parentId) ? 1 : 0;
+    const db = allFols.find(x=>x.id===b.parentId) ? 1 : 0;
+    return da - db;
+  });
 
-        for (const f of sorted) {
-          const newParent = folderIdMap[f.parentId] || "";
-          try {
-            const ref = await window._FB.addFolder(S.uid, {
-              name: f.name,
-              parentId: newParent,
-            });
-            folderIdMap[f.id] = ref.id;
-            S.folders.push({ id: ref.id, name: f.name, parentId: newParent });
-          } catch (e) {
-            console.warn("Folder import error", e);
-          }
-        }
+  for (const f of sorted) {
+    const newParent = folderIdMap[f.parentId] || '';
+    try {
+      const ref = await window._FB.addFolder(S.uid, {name:f.name, parentId:newParent});
+      folderIdMap[f.id] = ref.id;
+      S.folders.push({id:ref.id, name:f.name, parentId:newParent});
+    } catch(e) { console.warn('Folder import error', e); }
+  }
 
-        // Import vidéos
-        let imported = 0;
-        for (const v of newVids) {
-          const newFid = folderIdMap[v.folderId] || v.folderId || "";
-          const data = {
-            url: v.url,
-            ytId: v.ytId || extractYtId(v.url) || "",
-            title: v.title || "Sans titre",
-            category: v.category || "",
-            notes: v.notes || "",
-            folderId: newFid,
-            publishedAt: v.publishedAt || null,
-          };
-          try {
-            const ref = await window._FB.addVideo(S.uid, data);
-            S.videos.unshift({
-              id: ref.id,
-              ...data,
-              addedAt: new Date().toISOString(),
-            });
-            imported++;
-          } catch (e) {
-            console.warn("Video import error", e);
-          }
-        }
+  // Import vidéos
+  let imported = 0;
+  for (const v of newVids) {
+    const newFid = folderIdMap[v.folderId] || v.folderId || '';
+    const data = {
+      url: v.url, ytId: v.ytId||extractYtId(v.url)||'',
+      title: v.title||'Sans titre', category: v.category||'',
+      notes: v.notes||'', folderId: newFid,
+      publishedAt: v.publishedAt||null,
+    };
+    try {
+      const ref = await window._FB.addVideo(S.uid, data);
+      S.videos.unshift({id:ref.id, ...data, addedAt:new Date().toISOString()});
+      imported++;
+    } catch(e) { console.warn('Video import error', e); }
+  }
 
-        buildTree();
-        renderGrid();
-        closeModal("modalImport");
-        gi("importFile").value = "";
-        _importData = null;
-        gi("importBtn").textContent = "Importer";
-        toast(`${imported} vidéo(s) importée(s) ✓`, "ok");
-      }
+  buildTree(); renderGrid();
+  closeModal('modalImport');
+  gi('importFile').value = '';
+  _importData = null;
+  gi('importBtn').textContent = 'Importer';
+  toast(`${imported} vidéo(s) importée(s) ✓`, 'ok');
+}
 
-      // ── ACCÈS CODE PARTAGÉ (depuis l'app) ───────────────────────
-      async function openSharedLib() {
-        const code = gi("inAppCodeInput").value.trim().toUpperCase();
-        const errEl = gi("inAppCodeErr");
-        errEl.textContent = "";
-        if (code.length !== 8) {
-          errEl.textContent = "Code invalide — 8 caractères requis";
-          return;
-        }
-        try {
-          const sc = await window._FB.getCode(code);
-          if (!sc) {
-            errEl.textContent = "Code introuvable ou révoqué.";
-            return;
-          }
-          // Ouvre dans un nouvel onglet avec le code en paramètre URL
-          const url =
-            window.location.href.split("?")[0] + "?sharedCode=" + code;
-          window.open(url, "_blank", "noopener");
-          closeModal("modalAccessCode");
-          gi("inAppCodeInput").value = "";
-          toast("Bibliothèque ouverte dans un nouvel onglet", "info");
-        } catch (e) {
-          errEl.textContent = "Erreur : " + e.message;
-        }
-      }
+// ── MOBILE NAV ────────────────────────────────────────────
+function toggleMobileNav() { gi('mobileNav').classList.toggle('on'); }
+function closeMobileNav(e) {
+  if (!e || e.target === gi('mobileNav')) gi('mobileNav').classList.remove('on');
+}
 
-      // ── MOBILE NAV ────────────────────────────────────────────
-      function toggleMobileNav() {
-        gi("mobileNav").classList.toggle("on");
-      }
-      function closeMobileNav(e) {
-        if (!e || e.target === gi("mobileNav"))
-          gi("mobileNav").classList.remove("on");
-      }
+// ── MODALS ───────────────────────────────────────────────
+function openModal(id)  { gi(id).classList.add('on'); }
+function closeModal(id) { gi(id).classList.remove('on'); }
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target===ov) ov.classList.remove('on'); });
+});
 
-      // ── MODALS ───────────────────────────────────────────────
-      function openModal(id) {
-        gi(id).classList.add("on");
-      }
-      function closeModal(id) {
-        gi(id).classList.remove("on");
-      }
-      document.querySelectorAll(".overlay").forEach((ov) => {
-        ov.addEventListener("click", (e) => {
-          if (e.target === ov) ov.classList.remove("on");
-        });
-      });
+// ── UTILITAIRES ──────────────────────────────────────────
+function gi(id) { return document.getElementById(id); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-      // ── UTILITAIRES ──────────────────────────────────────────
-      function gi(id) {
-        return document.getElementById(id);
-      }
-      function esc(s) {
-        return String(s || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
+function extractYtId(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('?')[0];
+    const m = u.pathname.match(/\/shorts\/([^/?]+)/);
+    if (m) return m[1];
+    return u.searchParams.get('v') || null;
+  } catch { return null; }
+}
 
-      function extractYtId(url) {
-        try {
-          const u = new URL(url);
-          if (u.hostname.includes("youtu.be"))
-            return u.pathname.slice(1).split("?")[0];
-          const m = u.pathname.match(/\/shorts\/([^/?]+)/);
-          if (m) return m[1];
-          return u.searchParams.get("v") || null;
-        } catch {
-          return null;
-        }
-      }
+function ts(val) {
+  if (!val) return 0;
+  if (typeof val==='object' && val.seconds) return val.seconds * 1000;
+  return new Date(val).getTime() || 0;
+}
+function fmtTs(val) {
+  if (!val) return '—';
+  if (typeof val==='object' && val.seconds) return fmtDate(new Date(val.seconds*1000).toISOString().substring(0,10));
+  return fmtDate(String(val).substring(0,10));
+}
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
+  catch { return iso||'—'; }
+}
 
-      function ts(val) {
-        if (!val) return 0;
-        if (typeof val === "object" && val.seconds) return val.seconds * 1000;
-        return new Date(val).getTime() || 0;
-      }
-      function fmtTs(val) {
-        if (!val) return "—";
-        if (typeof val === "object" && val.seconds)
-          return fmtDate(
-            new Date(val.seconds * 1000).toISOString().substring(0, 10),
-          );
-        return fmtDate(String(val).substring(0, 10));
-      }
-      function fmtDate(iso) {
-        try {
-          return new Date(iso).toLocaleDateString("fr-FR", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          });
-        } catch {
-          return iso || "—";
-        }
-      }
+function gridSpin(on) {
+  const g = gi('grid');
+  [...g.querySelectorAll('.spin-wrap')].forEach(el => el.remove());
+  if (on) { const el=document.createElement('div'); el.className='spin-wrap'; el.innerHTML='<div class="sp"></div><div class="sp"></div><div class="sp"></div>'; g.appendChild(el); }
+}
 
-      function gridSpin(on) {
-        const g = gi("grid");
-        [...g.querySelectorAll(".spin-wrap")].forEach((el) => el.remove());
-        if (on) {
-          const el = document.createElement("div");
-          el.className = "spin-wrap";
-          el.innerHTML =
-            '<div class="sp"></div><div class="sp"></div><div class="sp"></div>';
-          g.appendChild(el);
-        }
-      }
+let _tt;
+function toast(msg, type='ok') {
+  const el = gi('toast'); el.className=`toast ${type} on`;
+  gi('toastMsg').textContent = msg;
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'), 3200);
+}
 
-      let _tt;
-      function toast(msg, type = "ok") {
-        const el = gi("toast");
-        el.className = `toast ${type} on`;
-        gi("toastMsg").textContent = msg;
-        clearTimeout(_tt);
-        _tt = setTimeout(() => el.classList.remove("on"), 3200);
-      }
-
-      // ── RACCOURCIS CLAVIER ───────────────────────────────────
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          document
-            .querySelectorAll(".overlay.on")
-            .forEach((o) => o.classList.remove("on"));
-          gi("ctx").classList.remove("on");
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-          e.preventDefault();
-          gi("search").focus();
-        }
-      });
-    </script>
-  </body>
+// ── RACCOURCIS CLAVIER ───────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    document.querySelectorAll('.overlay.on').forEach(o=>o.classList.remove('on'));
+    gi('ctx').classList.remove('on');
+  }
+  if ((e.ctrlKey||e.metaKey) && e.key==='k') { e.preventDefault(); gi('search').focus(); }
+});
+</script>
+</body>
 </html>
