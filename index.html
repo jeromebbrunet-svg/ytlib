@@ -8,126 +8,6 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-
-    <!-- ═══════════════════════════════════════════════════════════════
-     REMPLACEZ CE BLOC firebaseConfig PAR VOS VRAIES CLÉS FIREBASE
-     (voir le guide de configuration)
-═══════════════════════════════════════════════════════════════ -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import {
-        getAuth,
-        createUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-        signOut,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-      import {
-        getFirestore,
-        collection,
-        doc,
-        addDoc,
-        setDoc,
-        getDoc,
-        getDocs,
-        updateDoc,
-        deleteDoc,
-        query,
-        where,
-        orderBy,
-        serverTimestamp,
-      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyAbjeVvfkGzwfKsQUtFfeeRtUJKOfy_3cs",
-        authDomain: "videovault-f82dd.firebaseapp.com",
-        projectId: "videovault-f82dd",
-        storageBucket: "videovault-f82dd.firebasestorage.app",
-        messagingSenderId: "1036130775845",
-        appId: "1:1036130775845:web:44f57ad4f36009202220cc",
-      };
-
-      let app, auth, db;
-      const IS_PLACEHOLDER = firebaseConfig.apiKey === "VOTRE_API_KEY";
-
-      if (!IS_PLACEHOLDER) {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-
-        // ── Auth state ──────────────────────────────────────────────────
-        onAuthStateChanged(auth, (user) => {
-          window.dispatchEvent(
-            new CustomEvent("auth-change", { detail: { user } }),
-          );
-        });
-      }
-
-      // ── Expose Firebase API globally ────────────────────────────────
-      window._FB = {
-        ready: !IS_PLACEHOLDER,
-
-        // AUTH
-        register: (email, pw) =>
-          createUserWithEmailAndPassword(auth, email, pw),
-        login: (email, pw) => signInWithEmailAndPassword(auth, email, pw),
-        logout: () => signOut(auth),
-        currentUser: () => auth?.currentUser || null,
-
-        // FOLDERS  (collection: users/{uid}/folders)
-        addFolder: async (uid, data) =>
-          addDoc(collection(db, `users/${uid}/folders`), {
-            ...data,
-            createdAt: serverTimestamp(),
-          }),
-        updateFolder: async (uid, id, data) =>
-          updateDoc(doc(db, `users/${uid}/folders`, id), data),
-        deleteFolder: async (uid, id) =>
-          deleteDoc(doc(db, `users/${uid}/folders`, id)),
-        getFolders: async (uid) => {
-          const snap = await getDocs(collection(db, `users/${uid}/folders`));
-          return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        },
-
-        // VIDEOS  (collection: users/{uid}/videos)
-        addVideo: async (uid, data) =>
-          addDoc(collection(db, `users/${uid}/videos`), {
-            ...data,
-            addedAt: serverTimestamp(),
-            publishedAt: data.publishedAt || null,
-          }),
-        updateVideo: async (uid, id, data) =>
-          updateDoc(doc(db, `users/${uid}/videos`, id), data),
-        deleteVideo: async (uid, id) =>
-          deleteDoc(doc(db, `users/${uid}/videos`, id)),
-        getVideos: async (uid) => {
-          const snap = await getDocs(collection(db, `users/${uid}/videos`));
-          return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        },
-
-        // SHARE CODES  (collection: shareCodes)
-        createShareCode: async (code, data) =>
-          setDoc(doc(db, "shareCodes", code), {
-            ...data,
-            createdAt: serverTimestamp(),
-            used: false,
-          }),
-        getShareCode: async (code) => {
-          const d = await getDoc(doc(db, "shareCodes", code));
-          return d.exists() ? { id: d.id, ...d.data() } : null;
-        },
-        revokeShareCode: async (code) => deleteDoc(doc(db, "shareCodes", code)),
-        getMyShareCodes: async (uid) => {
-          const snap = await getDocs(
-            query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
-          );
-          return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        },
-      };
-
-      window.dispatchEvent(new Event("firebase-ready"));
-    </script>
-
     <style>
       :root {
         --bg: #080910;
@@ -171,8 +51,6 @@
         pointer-events: none;
         z-index: 0;
       }
-
-      /* ── SCROLLBAR ── */
       ::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -185,7 +63,7 @@
         border-radius: 3px;
       }
 
-      /* ══════════════ AUTH SCREEN ══════════════ */
+      /* ══ AUTH ══ */
       #authScreen {
         position: fixed;
         inset: 0;
@@ -200,37 +78,54 @@
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 2.5rem 2rem;
-        width: 380px;
+        width: 390px;
         max-width: 95vw;
-        animation: drop 0.3s ease;
+        animation: fadeUp 0.3s ease;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       .auth-logo {
         font-family: "Bebas Neue", sans-serif;
-        font-size: 2rem;
+        font-size: 2.2rem;
         letter-spacing: 4px;
         background: linear-gradient(120deg, var(--accent), var(--gold));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         text-align: center;
-        margin-bottom: 1.8rem;
+        margin-bottom: 0.3rem;
+      }
+      .auth-sub {
+        text-align: center;
+        font-size: 0.72rem;
+        color: var(--muted);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 1.6rem;
       }
       .auth-tabs {
         display: flex;
-        gap: 0;
-        margin-bottom: 1.5rem;
         border: 1px solid var(--border);
         border-radius: 8px;
         overflow: hidden;
+        margin-bottom: 1.4rem;
       }
       .auth-tab {
         flex: 1;
-        padding: 8px;
+        padding: 8px 4px;
         background: transparent;
         border: none;
         color: var(--muted);
         font-family: "DM Sans", sans-serif;
-        font-size: 0.82rem;
+        font-size: 0.78rem;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s;
@@ -238,6 +133,12 @@
       .auth-tab.active {
         background: var(--accent);
         color: #fff;
+      }
+      .auth-panel {
+        display: none;
+      }
+      .auth-panel.active {
+        display: block;
       }
       .auth-field {
         margin-bottom: 12px;
@@ -255,21 +156,38 @@
         font-size: 0.78rem;
         color: var(--accent);
         margin-bottom: 10px;
-        min-height: 18px;
+        min-height: 16px;
+        text-align: center;
       }
-      .auth-code-row {
+      .auth-hint {
+        font-size: 0.75rem;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 12px;
+      }
+      .auth-hint code {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 3px;
+        padding: 1px 5px;
+        color: var(--gold);
+      }
+      .auth-row {
         display: flex;
         gap: 8px;
         align-items: flex-end;
       }
+      .auth-row .auth-field {
+        flex: 1;
+        margin-bottom: 0;
+      }
 
-      /* ══════════════ APP SHELL ══════════════ */
+      /* ══ APP SHELL ══ */
       #appShell {
         display: none;
         height: 100vh;
         flex-direction: column;
       }
-      #appShell.visible {
+      #appShell.on {
         display: flex;
       }
 
@@ -298,21 +216,33 @@
         background-clip: text;
         user-select: none;
       }
-      .hdr-right {
+      .hdr-r {
         display: flex;
         gap: 8px;
         align-items: center;
       }
       .user-chip {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         color: var(--muted);
         padding: 4px 10px;
         border: 1px solid var(--border);
         border-radius: 20px;
-        max-width: 160px;
+        max-width: 180px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 7px #4ade8077;
       }
 
       /* ── LAYOUT ── */
@@ -335,20 +265,19 @@
         overflow: hidden;
       }
       .aside-top {
-        padding: 1rem;
+        padding: 0.8rem;
         flex-shrink: 0;
+        border-bottom: 1px solid var(--border);
       }
       .aside-actions {
         display: flex;
         gap: 6px;
-        margin-bottom: 0.8rem;
       }
       .sidebar-scroll {
         flex: 1;
         overflow-y: auto;
         padding: 0.5rem;
       }
-
       .tree-item {
         display: flex;
         align-items: center;
@@ -358,7 +287,6 @@
         cursor: pointer;
         transition: background 0.15s;
         font-size: 0.82rem;
-        position: relative;
       }
       .tree-item:hover {
         background: var(--hover);
@@ -367,25 +295,18 @@
         background: rgba(230, 57, 70, 0.12);
         color: var(--accent);
       }
-      .tree-item .ti-icon {
-        width: 16px;
-        height: 16px;
-        fill: currentColor;
-        flex-shrink: 0;
-        opacity: 0.7;
-      }
-      .tree-item .ti-label {
+      .ti-label {
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      .tree-item .ti-count {
-        font-size: 0.65rem;
+      .ti-count {
+        font-size: 0.62rem;
         color: var(--muted);
         flex-shrink: 0;
       }
-      .tree-item .ti-menu {
+      .ti-btn {
         width: 20px;
         height: 20px;
         display: flex;
@@ -393,30 +314,55 @@
         justify-content: center;
         border-radius: 4px;
         opacity: 0;
-        transition: opacity 0.15s;
         color: var(--muted);
         background: transparent;
         border: none;
         cursor: pointer;
         flex-shrink: 0;
+        font-size: 0.9rem;
+        transition: all 0.15s;
       }
-      .tree-item:hover .ti-menu {
+      .tree-item:hover .ti-btn {
         opacity: 1;
       }
-      .tree-item .ti-menu:hover {
+      .ti-btn:hover {
         background: var(--border);
         color: var(--text);
       }
       .tree-children {
-        padding-left: 14px;
+        padding-left: 12px;
       }
 
-      /* ── MAIN CONTENT ── */
+      /* ── MAIN ── */
       .main-content {
         flex: 1;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+      }
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0.55rem 1.2rem;
+        font-size: 0.76rem;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+      .bc {
+        cursor: pointer;
+        transition: color 0.15s;
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+      .bc:hover {
+        color: var(--text);
+        background: var(--hover);
+      }
+      .bc-sep {
+        opacity: 0.3;
       }
 
       /* ── TOOLBAR ── */
@@ -424,17 +370,17 @@
         display: flex;
         gap: 10px;
         align-items: center;
-        padding: 0.9rem 1.2rem;
+        padding: 0.8rem 1.2rem;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
         flex-wrap: wrap;
       }
-      .search-wrap {
+      .sw {
         position: relative;
         flex: 1;
         min-width: 150px;
       }
-      .search-wrap svg {
+      .sw svg {
         position: absolute;
         left: 10px;
         top: 50%;
@@ -443,6 +389,9 @@
         height: 14px;
         fill: var(--muted);
         pointer-events: none;
+      }
+      .sw input {
+        padding-left: 34px;
       }
       .sort-sel {
         background: var(--surface);
@@ -455,44 +404,22 @@
         cursor: pointer;
         outline: none;
       }
-      .count-pill {
+      .cpill {
         font-size: 0.72rem;
         color: var(--muted);
         white-space: nowrap;
       }
-      .count-pill b {
+      .cpill b {
         color: var(--text);
-      }
-
-      /* ── BREADCRUMB ── */
-      .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 0.6rem 1.2rem;
-        font-size: 0.78rem;
-        color: var(--muted);
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-      }
-      .bc-item {
-        cursor: pointer;
-        transition: color 0.15s;
-      }
-      .bc-item:hover {
-        color: var(--text);
-      }
-      .bc-sep {
-        opacity: 0.3;
       }
 
       /* ── GRID ── */
-      .video-grid {
+      .vgrid {
         flex: 1;
         overflow-y: auto;
-        padding: 1.2rem;
+        padding: 1rem;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
         gap: 12px;
         align-content: start;
       }
@@ -508,7 +435,6 @@
           box-shadow 0.22s,
           border-color 0.22s;
         animation: rise 0.28s ease both;
-        position: relative;
       }
       @keyframes rise {
         from {
@@ -522,25 +448,25 @@
       }
       .card:hover {
         transform: translateY(-4px);
-        border-color: #25283a;
+        border-color: #252839;
         box-shadow:
           0 20px 40px rgba(0, 0, 0, 0.55),
           0 0 0 1px rgba(230, 57, 70, 0.1);
       }
-      .card-thumb {
+      .thumb {
         position: relative;
         aspect-ratio: 16/9;
         background: #0a0b10;
         overflow: hidden;
         cursor: pointer;
       }
-      .card-thumb img {
+      .thumb img {
         width: 100%;
         height: 100%;
         object-fit: cover;
         transition: transform 0.35s ease;
       }
-      .card:hover .card-thumb img {
+      .card:hover .thumb img {
         transform: scale(1.05);
       }
       .play-ring {
@@ -580,10 +506,10 @@
         fill: #fff;
         margin-left: 2px;
       }
-      .cat-pill {
+      .cpill2 {
         position: absolute;
-        top: 8px;
-        left: 8px;
+        top: 7px;
+        left: 7px;
         background: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(4px);
         border-radius: 4px;
@@ -593,32 +519,32 @@
         letter-spacing: 0.8px;
         text-transform: uppercase;
         color: var(--gold);
-        border: 1px solid rgba(244, 162, 97, 0.25);
+        border: 1px solid rgba(244, 162, 97, 0.2);
       }
       .card-body {
-        padding: 10px 12px 12px;
+        padding: 10px 12px 11px;
       }
       .card-title {
-        font-size: 0.85rem;
+        font-size: 0.84rem;
         font-weight: 500;
         line-height: 1.42;
-        margin-bottom: 8px;
+        margin-bottom: 7px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
-      .card-footer {
+      .card-foot {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
       }
       .card-date {
-        font-size: 0.65rem;
+        font-size: 0.64rem;
         color: var(--muted);
         flex: 1;
       }
-      .card-action {
+      .ca {
         width: 24px;
         height: 24px;
         border-radius: 5px;
@@ -632,46 +558,46 @@
         opacity: 0;
         transition: all 0.15s;
       }
-      .card:hover .card-action {
+      .card:hover .ca {
         opacity: 1;
       }
-      .card-action:hover {
+      .ca:hover {
         background: var(--hover);
         border-color: var(--border);
         color: var(--text);
       }
-      .card-action.danger:hover {
+      .ca.red:hover {
         background: rgba(230, 57, 70, 0.15);
         border-color: rgba(230, 57, 70, 0.3);
         color: var(--accent);
       }
-      .card-action svg {
-        width: 12px;
-        height: 12px;
+      .ca svg {
+        width: 11px;
+        height: 11px;
         fill: currentColor;
       }
 
-      /* ── EMPTY STATE ── */
-      .empty-state {
+      /* ── EMPTY ── */
+      .empty {
         grid-column: 1/-1;
         padding: 5rem 2rem;
         text-align: center;
       }
-      .empty-glyph {
+      .empty-g {
         font-family: "Bebas Neue", sans-serif;
         font-size: 4rem;
         color: var(--border);
         line-height: 1;
         margin-bottom: 0.8rem;
       }
-      .empty-title {
+      .empty-t {
         font-family: "Bebas Neue", sans-serif;
         font-size: 1.3rem;
         letter-spacing: 3px;
         color: #252833;
         margin-bottom: 0.4rem;
       }
-      .empty-sub {
+      .empty-s {
         font-size: 0.8rem;
         color: var(--muted);
       }
@@ -680,15 +606,15 @@
       .overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(5px);
         z-index: 150;
         display: none;
         align-items: center;
         justify-content: center;
         padding: 1rem;
       }
-      .overlay.open {
+      .overlay.on {
         display: flex;
       }
       .modal {
@@ -696,42 +622,32 @@
         border: 1px solid var(--border);
         border-radius: 14px;
         padding: 1.8rem;
-        width: 480px;
+        width: 500px;
         max-width: 100%;
         max-height: 90vh;
         overflow-y: auto;
-        animation: drop 0.25s ease;
+        animation: fadeUp 0.22s ease;
       }
-      @keyframes drop {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .modal-title {
+      .modal-t {
         font-family: "Bebas Neue", sans-serif;
         font-size: 1.2rem;
         letter-spacing: 2px;
         margin-bottom: 1.2rem;
         color: var(--accent);
       }
-      .modal-grid {
+      .mg {
         display: grid;
         gap: 10px;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
-      .modal-grid-2 {
+      .mg2 {
         grid-template-columns: 1fr 1fr;
       }
-      .modal-actions {
+      .ma {
         display: flex;
         gap: 8px;
         justify-content: flex-end;
-        margin-top: 4px;
+        margin-top: 6px;
       }
       .field label {
         display: block;
@@ -743,29 +659,29 @@
         margin-bottom: 5px;
       }
 
-      /* ── SHARE PANEL ── */
-      .share-code-box {
+      /* ── SHARE ── */
+      .code-box {
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 8px;
-        padding: 10px 14px;
+        padding: 12px;
         font-family: monospace;
-        font-size: 1rem;
-        letter-spacing: 3px;
+        font-size: 1.1rem;
+        letter-spacing: 4px;
         color: var(--gold);
         text-align: center;
-        margin: 12px 0;
         cursor: pointer;
         transition: border-color 0.2s;
+        margin: 12px 0;
       }
-      .share-code-box:hover {
+      .code-box:hover {
         border-color: var(--gold);
       }
       .share-list {
         display: flex;
         flex-direction: column;
         gap: 6px;
-        max-height: 200px;
+        max-height: 180px;
         overflow-y: auto;
         margin-top: 8px;
       }
@@ -779,43 +695,44 @@
         border-radius: 7px;
         font-size: 0.78rem;
       }
-      .share-row-code {
+      .sr-code {
         font-family: monospace;
         font-size: 0.85rem;
         color: var(--gold);
         flex: 1;
         letter-spacing: 2px;
       }
-      .share-row-scope {
+      .sr-scope {
         color: var(--muted);
-        font-size: 0.72rem;
+        font-size: 0.7rem;
       }
-      .share-row-del {
+      .sr-del {
         background: transparent;
         border: none;
         cursor: pointer;
         color: var(--muted);
         transition: color 0.15s;
         padding: 2px;
+        display: flex;
       }
-      .share-row-del:hover {
+      .sr-del:hover {
         color: var(--accent);
       }
 
-      /* ── CONTEXT MENU ── */
-      .ctx-menu {
+      /* ── CTX MENU ── */
+      .ctx {
         position: fixed;
         z-index: 500;
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 9px;
         padding: 5px;
-        min-width: 170px;
+        min-width: 165px;
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
         display: none;
-        animation: drop 0.15s ease;
+        animation: fadeUp 0.15s ease;
       }
-      .ctx-menu.open {
+      .ctx.on {
         display: block;
       }
       .ctx-item {
@@ -826,17 +743,17 @@
         border-radius: 6px;
         font-size: 0.82rem;
         cursor: pointer;
-        transition: background 0.12s;
         color: var(--text);
         background: transparent;
         border: none;
         width: 100%;
         text-align: left;
+        transition: background 0.12s;
       }
       .ctx-item:hover {
         background: var(--hover);
       }
-      .ctx-item.danger {
+      .ctx-item.red {
         color: var(--accent);
       }
       .ctx-item svg {
@@ -848,7 +765,7 @@
       .ctx-sep {
         height: 1px;
         background: var(--border);
-        margin: 4px 0;
+        margin: 3px 0;
       }
 
       /* ── BUTTONS ── */
@@ -865,47 +782,48 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        white-space: nowrap;
       }
       .btn svg {
         width: 13px;
         height: 13px;
         fill: currentColor;
       }
-      .btn-primary {
+      .btn-p {
         background: var(--accent);
         color: #fff;
       }
-      .btn-primary:hover {
+      .btn-p:hover {
         background: #c9202d;
         transform: translateY(-1px);
       }
-      .btn-primary:disabled {
+      .btn-p:disabled {
         opacity: 0.5;
         cursor: not-allowed;
         transform: none;
       }
-      .btn-blue {
+      .btn-b {
         background: var(--blue);
         color: #fff;
       }
-      .btn-blue:hover {
+      .btn-b:hover {
         background: #3478c5;
       }
-      .btn-ghost {
+      .btn-g {
         background: transparent;
         color: var(--muted);
         border: 1px solid var(--border);
       }
-      .btn-ghost:hover {
+      .btn-g:hover {
         color: var(--text);
         border-color: #333;
         background: var(--hover);
       }
       .btn-sm {
-        padding: 5px 11px;
+        padding: 5px 12px;
         font-size: 0.75rem;
       }
-      .btn-icon {
+      .btn-ic {
         padding: 6px;
         border-radius: 7px;
         background: transparent;
@@ -916,15 +834,19 @@
         display: inline-flex;
         align-items: center;
       }
-      .btn-icon:hover {
+      .btn-ic:hover {
         color: var(--text);
         border-color: #333;
         background: var(--hover);
       }
-      .btn-icon svg {
+      .btn-ic svg {
         width: 14px;
         height: 14px;
         fill: currentColor;
+      }
+      .w100 {
+        width: 100%;
+        justify-content: center;
       }
 
       /* ── INPUTS ── */
@@ -979,7 +901,7 @@
         max-width: 260px;
         pointer-events: none;
       }
-      .toast.show {
+      .toast.on {
         transform: translateY(0);
         opacity: 1;
       }
@@ -992,24 +914,24 @@
       .toast.info {
         border-color: rgba(72, 149, 239, 0.35);
       }
-      .td {
+      .tdot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
         flex-shrink: 0;
       }
-      .toast.ok .td {
+      .toast.ok .tdot {
         background: var(--green);
       }
-      .toast.err .td {
+      .toast.err .tdot {
         background: var(--accent);
       }
-      .toast.info .td {
+      .toast.info .tdot {
         background: var(--blue);
       }
 
       /* ── SPINNER ── */
-      .sp-wrap {
+      .spin-wrap {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1043,197 +965,171 @@
         }
       }
 
-      /* ── STATUS ── */
-      .status-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--muted);
-        flex-shrink: 0;
-        transition:
-          background 0.3s,
-          box-shadow 0.3s;
-      }
-      .status-dot.ok {
-        background: var(--green);
-        box-shadow: 0 0 7px #4ade8077;
-      }
-      .status-dot.err {
-        background: var(--accent);
-        box-shadow: 0 0 7px #e6394677;
-      }
-
       /* ── SETUP BANNER ── */
       .setup-banner {
         background: linear-gradient(135deg, #190c0e, var(--surface));
         border: 1px solid rgba(230, 57, 70, 0.3);
         border-radius: var(--radius);
-        padding: 1.2rem 1.5rem;
-        margin: 1.2rem;
+        padding: 1rem 1.4rem;
+        margin: 0.8rem;
         display: none;
       }
-      .setup-banner.visible {
+      .setup-banner.on {
         display: block;
       }
       .setup-banner h3 {
         font-family: "Bebas Neue", sans-serif;
-        font-size: 1.1rem;
+        font-size: 1rem;
         letter-spacing: 2px;
         color: var(--accent);
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.3rem;
       }
       .setup-banner p {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         color: var(--muted);
         line-height: 1.6;
-      }
-      .setup-banner code {
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 3px;
-        padding: 1px 5px;
-        color: var(--gold);
       }
 
       @media (max-width: 640px) {
         aside {
           display: none;
         }
-        .modal-grid-2 {
+        .mg2 {
           grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
   <body>
-    <!-- ══════════════════════════════════════════════════════
-     AUTH SCREEN
-══════════════════════════════════════════════════════ -->
+    <!-- ══════════ AUTH SCREEN ══════════ -->
     <div id="authScreen">
       <div class="auth-box">
         <div class="auth-logo">VideoVault</div>
+        <div class="auth-sub">Votre bibliothèque YouTube</div>
 
-        <!-- Tabs login / register / share code -->
         <div class="auth-tabs">
-          <button class="auth-tab active" onclick="switchAuthTab('login')">
+          <button class="auth-tab active" onclick="switchTab('login')">
             Connexion
           </button>
-          <button class="auth-tab" onclick="switchAuthTab('register')">
+          <button class="auth-tab" onclick="switchTab('register')">
             Créer un compte
           </button>
-          <button class="auth-tab" onclick="switchAuthTab('share')">
+          <button class="auth-tab" onclick="switchTab('code')">
             Code partagé
           </button>
         </div>
 
         <div id="authErr" class="auth-err"></div>
 
-        <!-- Login -->
-        <div id="tabLogin">
+        <div id="panelLogin" class="auth-panel active">
           <div class="auth-field">
-            <label>Email</label
-            ><input type="email" id="lEmail" placeholder="vous@exemple.com" />
+            <label>Email</label>
+            <input
+              type="email"
+              id="lEmail"
+              placeholder="vous@exemple.com"
+              autocomplete="email"
+            />
           </div>
           <div class="auth-field">
-            <label>Mot de passe</label
-            ><input
+            <label>Mot de passe</label>
+            <input
               type="password"
               id="lPw"
               placeholder="••••••••"
+              autocomplete="current-password"
               onkeydown="if (event.key === 'Enter') doLogin();"
             />
           </div>
-          <button
-            class="btn btn-primary"
-            style="width: 100%; justify-content: center; margin-top: 4px"
-            onclick="doLogin()"
-          >
+          <button class="btn btn-p w100" id="btnLogin" onclick="doLogin()">
             Se connecter
           </button>
         </div>
 
-        <!-- Register -->
-        <div id="tabRegister" style="display: none">
+        <div id="panelRegister" class="auth-panel">
           <div class="auth-field">
-            <label>Email</label
-            ><input type="email" id="rEmail" placeholder="vous@exemple.com" />
+            <label>Email</label>
+            <input
+              type="email"
+              id="rEmail"
+              placeholder="vous@exemple.com"
+              autocomplete="email"
+            />
           </div>
           <div class="auth-field">
-            <label>Mot de passe (6 caractères min.)</label
-            ><input
+            <label
+              >Mot de passe
+              <span style="color: var(--muted); font-size: 0.7rem"
+                >(6 car. min.)</span
+              ></label
+            >
+            <input
               type="password"
               id="rPw"
               placeholder="••••••••"
+              autocomplete="new-password"
               onkeydown="if (event.key === 'Enter') doRegister();"
             />
           </div>
           <button
-            class="btn btn-primary"
-            style="width: 100%; justify-content: center; margin-top: 4px"
+            class="btn btn-p w100"
+            id="btnRegister"
             onclick="doRegister()"
           >
             Créer mon compte
           </button>
         </div>
 
-        <!-- Share code -->
-        <div id="tabShare" style="display: none">
-          <p
-            style="
-              font-size: 0.8rem;
-              color: var(--muted);
-              margin-bottom: 12px;
-              line-height: 1.6;
-            "
-          >
-            Entrez un code de partage pour consulter la bibliothèque d'un autre
-            utilisateur.
+        <div id="panelCode" class="auth-panel">
+          <p class="auth-hint">
+            Entrez un code à 8 caractères reçu d'un autre utilisateur pour
+            consulter sa bibliothèque en lecture seule.
           </p>
-          <div class="auth-code-row">
-            <div class="auth-field" style="flex: 1; margin-bottom: 0">
-              <label>Code à 8 caractères</label
-              ><input
+          <div class="auth-row">
+            <div class="auth-field">
+              <label>Code de partage</label>
+              <input
                 type="text"
-                id="shareCodeInput"
-                placeholder="EX: AB12CD34"
+                id="shareInput"
+                placeholder="AB12CD34"
                 maxlength="8"
-                style="text-transform: uppercase; letter-spacing: 3px"
-                onkeydown="if (event.key === 'Enter') accessShareCode();"
+                style="
+                  text-transform: uppercase;
+                  letter-spacing: 3px;
+                  text-align: center;
+                "
+                onkeydown="if (event.key === 'Enter') accessCode();"
               />
             </div>
-            <button class="btn btn-blue btn-sm" onclick="accessShareCode()">
+            <button class="btn btn-b btn-sm" onclick="accessCode()">
               Accéder
             </button>
           </div>
         </div>
 
-        <div
-          id="authNotReady"
-          style="display: none; text-align: center; padding: 1rem 0"
-        >
-          <div style="font-size: 0.8rem; color: var(--muted); line-height: 1.7">
-            Firebase non configuré.<br />
-            Ouvrez le fichier HTML et remplacez le bloc
-            <code style="color: var(--gold)">firebaseConfig</code>.
-          </div>
+        <div id="panelNoFirebase" class="auth-panel">
+          <p class="auth-hint">
+            Firebase n'est pas configuré. Ouvrez ce fichier dans un éditeur de
+            texte et remplacez le bloc <code>firebaseConfig</code> par vos
+            vraies clés Firebase.
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════
-     APP SHELL
-══════════════════════════════════════════════════════ -->
+    <!-- ══════════ APP SHELL ══════════ -->
     <div id="appShell">
       <header>
         <div class="logo">VideoVault</div>
-        <div class="hdr-right">
-          <div style="display: flex; align-items: center; gap: 6px">
-            <div class="status-dot ok" id="dot"></div>
-            <span style="font-size: 0.72rem; color: var(--muted)" id="statusTxt"
+        <div class="hdr-r">
+          <div class="status-row">
+            <div class="dot"></div>
+            <span style="font-size: 0.7rem; color: var(--muted)" id="stTxt"
               >Connecté</span
             >
           </div>
-          <div class="user-chip" id="userChip">—</div>
-          <button class="btn-icon" title="Exporter JSON" onclick="exportJSON()">
+          <div class="user-chip" id="userChip"></div>
+          <button class="btn-ic" title="Exporter JSON" onclick="exportJSON()">
             <svg viewBox="0 0 16 16">
               <path
                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"
@@ -1243,74 +1139,72 @@
               />
             </svg>
           </button>
-          <button class="btn-icon" title="Partage" onclick="openShareModal()">
+          <button
+            class="btn-ic"
+            title="Partager"
+            onclick="openShareModal()"
+            id="btnShareHdr"
+          >
             <svg viewBox="0 0 16 16">
               <path
                 d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"
               />
             </svg>
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="doLogout()">
+          <button class="btn btn-g btn-sm" onclick="doLogout()">
             Déconnexion
           </button>
         </div>
       </header>
 
       <div class="app-body">
-        <!-- ── SIDEBAR ── -->
         <aside>
           <div class="aside-top">
             <div class="aside-actions">
               <button
-                class="btn btn-primary btn-sm"
+                class="btn btn-p btn-sm"
                 style="flex: 1; justify-content: center"
-                onclick="openAddVideoModal()"
+                onclick="openVideoModal()"
+                id="btnAddVideo"
               >
                 + Vidéo
               </button>
               <button
-                class="btn btn-ghost btn-sm"
-                onclick="openFolderModal(null)"
-                title="Nouveau dossier"
+                class="btn btn-g btn-sm"
+                onclick="openFolderModal()"
+                id="btnAddFolder"
+                style="padding: 5px 10px"
               >
                 <svg
                   viewBox="0 0 16 16"
                   style="width: 13px; height: 13px; fill: currentColor"
                 >
                   <path
-                    d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"
+                    d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z"
                   />
                 </svg>
-                + Dossier
+                Dossier
               </button>
             </div>
           </div>
-
-          <div class="sidebar-scroll" id="sidebarTree">
-            <!-- built by JS -->
-          </div>
+          <div class="sidebar-scroll" id="tree"></div>
         </aside>
 
-        <!-- ── MAIN CONTENT ── -->
         <div class="main-content">
           <div class="setup-banner" id="setupBanner">
-            <h3>⚡ Configuration requise</h3>
+            <h3>⚡ Firebase non configuré</h3>
             <p>
-              Ouvrez le fichier HTML dans un éditeur, remplacez le bloc
-              <code>firebaseConfig</code> par vos vraies clés Firebase.
+              Remplacez le bloc <code>firebaseConfig</code> dans le fichier HTML
+              par vos vraies clés Firebase.
             </p>
           </div>
 
-          <!-- Breadcrumb -->
           <div class="breadcrumb" id="breadcrumb">
-            <span class="bc-item" onclick="navigateTo(null)"
-              >📁 Toute la bibliothèque</span
-            >
+            <span class="bc" onclick="nav(null)">📁 Tout</span>
           </div>
 
-          <!-- Toolbar -->
           <div class="toolbar">
-            <div class="search-wrap">
+            <div class="sw">
               <svg viewBox="0 0 16 16">
                 <path
                   d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
@@ -1319,24 +1213,23 @@
               <input
                 type="text"
                 id="search"
-                placeholder="Rechercher…"
+                placeholder="Rechercher… (Ctrl+K)"
                 oninput="renderGrid()"
               />
             </div>
             <select class="sort-sel" id="sortSel" onchange="renderGrid()">
               <option value="addedDesc">Ajout ↓</option>
               <option value="addedAsc">Ajout ↑</option>
-              <option value="publishedDesc">Publication ↓</option>
-              <option value="publishedAsc">Publication ↑</option>
+              <option value="pubDesc">Publication ↓</option>
+              <option value="pubAsc">Publication ↑</option>
               <option value="titleAsc">Titre A→Z</option>
               <option value="titleDesc">Titre Z→A</option>
             </select>
-            <div class="count-pill"><b id="cnt">0</b> vidéo(s)</div>
+            <div class="cpill"><b id="cnt">0</b> vidéo(s)</div>
           </div>
 
-          <!-- Video grid -->
-          <div class="video-grid" id="grid">
-            <div class="sp-wrap">
+          <div class="vgrid" id="grid">
+            <div class="spin-wrap">
               <div class="sp"></div>
               <div class="sp"></div>
               <div class="sp"></div>
@@ -1346,172 +1239,181 @@
       </div>
     </div>
 
-    <!-- ══ MODAL: ADD / EDIT VIDEO ══ -->
-    <div class="overlay" id="videoModal">
+    <!-- ══ MODAL VIDÉO ══ -->
+    <div class="overlay" id="modalVideo">
       <div class="modal">
-        <div class="modal-title" id="videoModalTitle">Nouvelle vidéo</div>
-        <div class="modal-grid">
+        <div class="modal-t" id="videoModalTitle">Nouvelle vidéo</div>
+        <div class="mg">
           <div class="field">
-            <label>URL YouTube (vidéo ou Short)</label
-            ><input
+            <label>URL YouTube (vidéo, Short ou youtu.be)</label>
+            <input
               type="url"
               id="vmUrl"
               placeholder="https://youtube.com/watch?v=…"
+              oninput="previewThumb()"
             />
           </div>
         </div>
-        <div class="modal-grid modal-grid-2">
+        <div id="thumbPreviewWrap" style="display: none; margin-bottom: 10px">
+          <img
+            id="thumbPreview"
+            style="
+              width: 100%;
+              border-radius: 6px;
+              aspect-ratio: 16/9;
+              object-fit: cover;
+              background: #0a0b10;
+            "
+            alt=""
+          />
+        </div>
+        <div class="mg mg2">
           <div class="field">
             <label>Titre</label
             ><input type="text" id="vmTitle" placeholder="Titre de la vidéo" />
           </div>
           <div class="field">
-            <label>Date de publication</label
-            ><input type="date" id="vmPublished" />
+            <label>Date de publication</label><input type="date" id="vmPub" />
           </div>
         </div>
-        <div class="modal-grid modal-grid-2">
+        <div class="mg mg2">
           <div class="field">
             <label>Catégorie / tag</label
             ><input type="text" id="vmCat" placeholder="Musique, Dev, Sport…" />
           </div>
           <div class="field">
-            <label>Dossier</label>
-            <select id="vmFolder">
-              <option value="">— Racine —</option>
-            </select>
+            <label>Dossier</label
+            ><select id="vmFolder"></select>
           </div>
         </div>
-        <div class="modal-grid">
+        <div class="mg">
           <div class="field">
             <label>Notes personnelles</label
             ><textarea id="vmNotes" placeholder="Optionnel…"></textarea>
           </div>
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closeModal('videoModal')">
+        <div class="ma">
+          <button class="btn btn-g" onclick="closeModal('modalVideo')">
             Annuler
           </button>
-          <button class="btn btn-primary" id="vmSaveBtn" onclick="saveVideo()">
+          <button class="btn btn-p" id="vmSaveBtn" onclick="saveVideo()">
             Enregistrer
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ══ MODAL: ADD / EDIT FOLDER ══ -->
-    <div class="overlay" id="folderModal">
-      <div class="modal">
-        <div class="modal-title" id="folderModalTitle">Nouveau dossier</div>
-        <div class="modal-grid">
+    <!-- ══ MODAL DOSSIER ══ -->
+    <div class="overlay" id="modalFolder">
+      <div class="modal" style="width: 380px">
+        <div class="modal-t">Nouveau dossier</div>
+        <div class="mg">
           <div class="field">
-            <label>Nom du dossier</label
-            ><input
+            <label>Nom du dossier</label>
+            <input
               type="text"
               id="fmName"
-              placeholder="Ex: Tutoriels Python"
+              placeholder="Ex : Tutoriels Python"
+              onkeydown="if (event.key === 'Enter') saveFolder();"
             />
           </div>
           <div class="field">
-            <label>Dossier parent (optionnel, max 3 niveaux)</label>
-            <select id="fmParent">
-              <option value="">— Racine —</option>
-            </select>
+            <label
+              >Dossier parent
+              <span style="color: var(--muted); font-size: 0.7rem"
+                >(optionnel, max 3 niveaux)</span
+              ></label
+            >
+            <select id="fmParent"></select>
           </div>
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closeModal('folderModal')">
+        <div class="ma">
+          <button class="btn btn-g" onclick="closeModal('modalFolder')">
             Annuler
           </button>
-          <button class="btn btn-primary" onclick="saveFolder()">Créer</button>
+          <button class="btn btn-p" onclick="saveFolder()">Créer</button>
         </div>
       </div>
     </div>
 
-    <!-- ══ MODAL: MOVE VIDEO ══ -->
-    <div class="overlay" id="moveModal">
-      <div class="modal">
-        <div class="modal-title">Déplacer la vidéo</div>
+    <!-- ══ MODAL DÉPLACER ══ -->
+    <div class="overlay" id="modalMove">
+      <div class="modal" style="width: 360px">
+        <div class="modal-t">Déplacer la vidéo</div>
         <p
-          style="font-size: 0.82rem; color: var(--muted); margin-bottom: 14px"
-          id="movingTitle"
+          style="
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 14px;
+            font-style: italic;
+          "
+          id="movingLabel"
         ></p>
         <div class="field">
-          <label>Destination</label>
-          <select id="moveTarget">
-            <option value="">— Racine —</option>
-          </select>
+          <label>Destination</label
+          ><select id="moveTarget"></select>
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-ghost" onclick="closeModal('moveModal')">
+        <div class="ma">
+          <button class="btn btn-g" onclick="closeModal('modalMove')">
             Annuler
           </button>
-          <button class="btn btn-primary" onclick="confirmMove()">
-            Déplacer
-          </button>
+          <button class="btn btn-p" onclick="confirmMove()">Déplacer</button>
         </div>
       </div>
     </div>
 
-    <!-- ══ MODAL: SHARE ══ -->
-    <div class="overlay" id="shareModal">
+    <!-- ══ MODAL PARTAGE ══ -->
+    <div class="overlay" id="modalShare">
       <div class="modal" style="width: 520px">
-        <div class="modal-title">Partage & Codes</div>
-
+        <div class="modal-t">Partage &amp; Codes</div>
         <p
           style="
             font-size: 0.8rem;
             color: var(--muted);
-            margin-bottom: 14px;
-            line-height: 1.6;
+            margin-bottom: 1rem;
+            line-height: 1.65;
           "
         >
-          Générez un code à usage unique pour partager tout ou une partie de
-          votre bibliothèque avec quelqu'un. Le code peut être révoqué à tout
-          moment.
+          Générez un code à 8 caractères pour partager votre bibliothèque (ou un
+          dossier) en lecture seule. La personne n'a pas besoin de compte.
+          Révoquez le code à tout moment.
         </p>
-
-        <div class="modal-grid modal-grid-2">
+        <div class="mg mg2">
           <div class="field">
-            <label>Portée du partage</label>
-            <select id="shareScope">
+            <label>Portée</label>
+            <select id="shareScope" onchange="toggleShareFolder()">
               <option value="all">Toute la bibliothèque</option>
               <option value="folder">Un dossier précis</option>
             </select>
           </div>
-          <div class="field" id="shareFolderField" style="display: none">
-            <label>Dossier à partager</label>
-            <select id="shareFolder">
-              <option value="">— choisir —</option>
-            </select>
+          <div class="field" id="shareFolderWrap" style="display: none">
+            <label>Dossier</label>
+            <select id="shareFolder"></select>
           </div>
         </div>
-        <div class="field" style="margin-bottom: 12px">
-          <label>Note (optionnel)</label
-          ><input type="text" id="shareNote" placeholder="Ex: pour Marie" />
+        <div class="mg">
+          <div class="field">
+            <label>Note (optionnel)</label>
+            <input type="text" id="shareNote" placeholder="Ex : pour Marie" />
+          </div>
         </div>
-        <button class="btn btn-primary" onclick="generateShareCode()">
+        <button class="btn btn-p" onclick="generateCode()">
           Générer un code
         </button>
-
-        <div id="newCodeBox" style="display: none">
+        <div id="newCodeWrap" style="display: none">
           <div
-            class="share-code-box"
+            class="code-box"
             id="newCodeDisplay"
-            title="Cliquez pour copier"
-            onclick="copyCode(this.textContent)"
+            onclick="copyCode(this.textContent.trim())"
           ></div>
-          <p
-            style="font-size: 0.72rem; color: var(--muted); text-align: center"
-          >
-            Cliquez pour copier • Code à usage unique
+          <p style="font-size: 0.7rem; color: var(--muted); text-align: center">
+            Cliquez pour copier · Code à usage unique
           </p>
         </div>
-
         <div style="margin-top: 1.2rem">
           <div
             style="
-              font-size: 0.7rem;
+              font-size: 0.68rem;
               font-weight: 600;
               color: var(--muted);
               text-transform: uppercase;
@@ -1521,15 +1423,10 @@
           >
             Codes actifs
           </div>
-          <div class="share-list" id="shareList">
-            <div style="font-size: 0.78rem; color: var(--muted); padding: 8px">
-              Aucun code actif
-            </div>
-          </div>
+          <div class="share-list" id="shareList"></div>
         </div>
-
-        <div class="modal-actions" style="margin-top: 1rem">
-          <button class="btn btn-ghost" onclick="closeModal('shareModal')">
+        <div class="ma" style="margin-top: 1rem">
+          <button class="btn btn-g" onclick="closeModal('modalShare')">
             Fermer
           </button>
         </div>
@@ -1537,16 +1434,16 @@
     </div>
 
     <!-- ══ CONTEXT MENU ══ -->
-    <div class="ctx-menu" id="ctxMenu">
-      <button class="ctx-item" id="ctxEdit" onclick="ctxAction('edit')">
+    <div class="ctx" id="ctx">
+      <button class="ctx-item" onclick="ctxDo('edit')">
         <svg viewBox="0 0 16 16">
           <path
-            d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"
+            d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"
           />
         </svg>
         Modifier
       </button>
-      <button class="ctx-item" id="ctxMove" onclick="ctxAction('move')">
+      <button class="ctx-item" onclick="ctxDo('move')">
         <svg viewBox="0 0 16 16">
           <path
             d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"
@@ -1555,7 +1452,7 @@
         Déplacer vers…
       </button>
       <div class="ctx-sep"></div>
-      <button class="ctx-item danger" id="ctxDel" onclick="ctxAction('delete')">
+      <button class="ctx-item red" onclick="ctxDo('delete')">
         <svg viewBox="0 0 16 16">
           <path
             d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"
@@ -1569,100 +1466,193 @@
       </button>
     </div>
 
-    <!-- TOAST -->
     <div class="toast" id="toast">
-      <div class="td"></div>
+      <div class="tdot"></div>
       <span id="toastMsg"></span>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
-     APP JAVASCRIPT
+     FIREBASE MODULE  — placé en fin de body pour que le DOM
+     soit prêt avant que onAuthStateChanged ne se déclenche
+══════════════════════════════════════════════════════ -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        setDoc,
+        getDoc,
+        getDocs,
+        updateDoc,
+        deleteDoc,
+        query,
+        where,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // ▼▼▼ REMPLACEZ CE BLOC PAR VOS VRAIES CLÉS FIREBASE ▼▼▼
+      const firebaseConfig = {
+        apiKey: "AIzaSyAbjeVvfkGzwfKsQUtFfeeRtUJKOfy_3cs",
+        authDomain: "videovault-f82dd.firebaseapp.com",
+        projectId: "videovault-f82dd",
+        storageBucket: "videovault-f82dd.firebasestorage.app",
+        messagingSenderId: "1036130775845",
+        appId: "1:1036130775845:web:44f57ad4f36009202220cc",
+      };
+      // ▲▲▲ FIN DU BLOC À REMPLACER ▲▲▲
+
+      const PLACEHOLDER = firebaseConfig.apiKey === "VOTRE_API_KEY";
+
+      if (PLACEHOLDER) {
+        // Pas configuré : afficher le panneau explicatif
+        document
+          .querySelectorAll(".auth-tab")
+          .forEach((el) => (el.style.display = "none"));
+        document
+          .querySelectorAll(".auth-panel")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById("panelNoFirebase").classList.add("active");
+        document.getElementById("setupBanner").classList.add("on");
+      } else {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window._FB = {
+          login: (e, p) => signInWithEmailAndPassword(auth, e, p),
+          register: (e, p) => createUserWithEmailAndPassword(auth, e, p),
+          logout: () => signOut(auth),
+
+          addFolder: (uid, d) =>
+            addDoc(collection(db, `users/${uid}/folders`), {
+              ...d,
+              createdAt: serverTimestamp(),
+            }),
+          updateFolder: (uid, id, d) =>
+            updateDoc(doc(db, `users/${uid}/folders`, id), d),
+          deleteFolder: (uid, id) =>
+            deleteDoc(doc(db, `users/${uid}/folders`, id)),
+          getFolders: async (uid) => {
+            const s = await getDocs(collection(db, `users/${uid}/folders`));
+            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+
+          addVideo: (uid, d) =>
+            addDoc(collection(db, `users/${uid}/videos`), {
+              ...d,
+              addedAt: serverTimestamp(),
+            }),
+          updateVideo: (uid, id, d) =>
+            updateDoc(doc(db, `users/${uid}/videos`, id), d),
+          deleteVideo: (uid, id) =>
+            deleteDoc(doc(db, `users/${uid}/videos`, id)),
+          getVideos: async (uid) => {
+            const s = await getDocs(collection(db, `users/${uid}/videos`));
+            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+
+          createCode: (code, d) =>
+            setDoc(doc(db, "shareCodes", code), {
+              ...d,
+              createdAt: serverTimestamp(),
+            }),
+          getCode: async (code) => {
+            const d = await getDoc(doc(db, "shareCodes", code));
+            return d.exists() ? { id: d.id, ...d.data() } : null;
+          },
+          revokeCode: (code) => deleteDoc(doc(db, "shareCodes", code)),
+          getMyCodes: async (uid) => {
+            const s = await getDocs(
+              query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
+            );
+            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+        };
+
+        // Connexion automatique si session Firebase active
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            S.uid = user.uid;
+            S.email = user.email;
+            showApp();
+            loadAll();
+          } else if (!S.shareMode) {
+            showAuth();
+          }
+        });
+      }
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════
+     LOGIQUE APPLICATIVE
 ══════════════════════════════════════════════════════ -->
     <script>
-      // ─────────────────────────────────────────────────────────
-      //  STATE
-      // ─────────────────────────────────────────────────────────
-      let STATE = {
+      // ── STATE ────────────────────────────────────────────────
+      const S = {
         uid: null,
         email: null,
         videos: [],
         folders: [],
-        currentFolder: null, // null = root
-        editingVideoId: null,
-        movingVideoId: null,
-        ctxVideoId: null,
-        shareMode: false, // viewing shared library
-        shareOwnerUid: null,
-        shareCodeId: null,
+        curFolder: null,
+        editVid: null,
+        moveVid: null,
+        ctxVid: null,
+        shareMode: false,
+        shareOwner: null,
       };
 
-      // ─────────────────────────────────────────────────────────
-      //  FIREBASE READY
-      // ─────────────────────────────────────────────────────────
-      window.addEventListener("firebase-ready", () => {
-        if (!window._FB.ready) {
-          document.getElementById("authNotReady").style.display = "block";
-          document
-            .querySelectorAll(".auth-tab, #tabLogin, #tabRegister, #tabShare")
-            .forEach((el) => {
-              if (!el.id.includes("authNotReady")) el.style.display = "none";
-            });
-          document.getElementById("authNotReady").style.display = "block";
-          document.getElementById("setupBanner").classList.add("visible");
-        }
-      });
-
-      window.addEventListener("auth-change", ({ detail: { user } }) => {
-        if (user) {
-          STATE.uid = user.uid;
-          STATE.email = user.email;
-          showApp();
-          loadAll();
-        } else if (!STATE.shareMode) {
-          showAuth();
-        }
-      });
-
-      // ─────────────────────────────────────────────────────────
-      //  AUTH SCREEN
-      // ─────────────────────────────────────────────────────────
-      let authTab = "login";
-      function switchAuthTab(tab) {
-        authTab = tab;
-        document.getElementById("authErr").textContent = "";
-        ["login", "register", "share"].forEach((t) => {
-          document.getElementById("tabLogin").style.display =
-            t === "login" && tab === "login" ? "block" : "none";
-          document.getElementById("tabRegister").style.display =
-            t === "register" && tab === "register" ? "block" : "none";
-          document.getElementById("tabShare").style.display =
-            t === "share" && tab === "share" ? "block" : "none";
-        });
+      // ── ONGLETS AUTH ─────────────────────────────────────────
+      function switchTab(tab) {
         document.querySelectorAll(".auth-tab").forEach((el, i) => {
           el.classList.toggle(
             "active",
-            ["login", "register", "share"][i] === tab,
+            ["login", "register", "code"][i] === tab,
           );
         });
+        ["panelLogin", "panelRegister", "panelCode", "panelNoFirebase"].forEach(
+          (id) => {
+            document.getElementById(id).classList.remove("active");
+          },
+        );
+        const map = {
+          login: "panelLogin",
+          register: "panelRegister",
+          code: "panelCode",
+        };
+        document.getElementById(map[tab]).classList.add("active");
+        document.getElementById("authErr").textContent = "";
       }
 
+      // ── AUTH ACTIONS ─────────────────────────────────────────
       async function doLogin() {
-        const email = document.getElementById("lEmail").value.trim();
-        const pw = document.getElementById("lPw").value;
+        const email = gi("lEmail").value.trim();
+        const pw = gi("lPw").value;
         if (!email || !pw) {
           authErr("Email et mot de passe requis");
           return;
         }
+        setBtn("btnLogin", true, "Connexion…");
         try {
           await window._FB.login(email, pw);
         } catch (e) {
-          authErr(friendlyAuthErr(e.code));
+          authErr(fmtErr(e.code));
+        } finally {
+          setBtn("btnLogin", false, "Se connecter");
         }
       }
 
       async function doRegister() {
-        const email = document.getElementById("rEmail").value.trim();
-        const pw = document.getElementById("rPw").value;
+        const email = gi("rEmail").value.trim();
+        const pw = gi("rPw").value;
         if (!email || !pw) {
           authErr("Champs requis");
           return;
@@ -1671,297 +1661,265 @@
           authErr("Mot de passe : 6 caractères minimum");
           return;
         }
+        setBtn("btnRegister", true, "Création…");
         try {
           await window._FB.register(email, pw);
         } catch (e) {
-          authErr(friendlyAuthErr(e.code));
+          authErr(fmtErr(e.code));
+        } finally {
+          setBtn("btnRegister", false, "Créer mon compte");
         }
       }
 
       async function doLogout() {
         await window._FB.logout();
-        STATE = {
+        Object.assign(S, {
           uid: null,
           email: null,
           videos: [],
           folders: [],
-          currentFolder: null,
-          editingVideoId: null,
-          movingVideoId: null,
-          ctxVideoId: null,
+          curFolder: null,
+          editVid: null,
+          moveVid: null,
+          ctxVid: null,
           shareMode: false,
-          shareOwnerUid: null,
-          shareCodeId: null,
-        };
+          shareOwner: null,
+        });
         showAuth();
       }
 
-      function authErr(msg) {
-        document.getElementById("authErr").textContent = msg;
-      }
-
-      function friendlyAuthErr(code) {
-        const map = {
-          "auth/invalid-email": "Email invalide.",
-          "auth/user-not-found": "Aucun compte avec cet email.",
-          "auth/wrong-password": "Mot de passe incorrect.",
-          "auth/email-already-in-use": "Cet email est déjà utilisé.",
-          "auth/weak-password": "Mot de passe trop faible.",
-          "auth/invalid-credential": "Email ou mot de passe incorrect.",
-        };
-        return map[code] || "Erreur : " + code;
-      }
-
-      function showAuth() {
-        document.getElementById("authScreen").style.display = "flex";
-        document.getElementById("appShell").classList.remove("visible");
-      }
-
-      function showApp() {
-        document.getElementById("authScreen").style.display = "none";
-        document.getElementById("appShell").classList.add("visible");
-        document.getElementById("userChip").textContent = STATE.shareMode
-          ? "👁 Mode lecture"
-          : STATE.email || "";
-      }
-
-      // ─────────────────────────────────────────────────────────
-      //  SHARE CODE ACCESS (sans compte)
-      // ─────────────────────────────────────────────────────────
-      async function accessShareCode() {
-        const code = document
-          .getElementById("shareCodeInput")
-          .value.trim()
-          .toUpperCase();
+      async function accessCode() {
+        const code = gi("shareInput").value.trim().toUpperCase();
         if (code.length !== 8) {
-          authErr("Code invalide (8 caractères)");
+          authErr("Code invalide — 8 caractères requis");
           return;
         }
         try {
-          const sc = await window._FB.getShareCode(code);
+          const sc = await window._FB.getCode(code);
           if (!sc) {
             authErr("Code introuvable ou révoqué.");
             return;
           }
-          STATE.shareMode = true;
-          STATE.shareOwnerUid = sc.ownerUid;
-          STATE.shareCodeId = code;
-          STATE.uid = sc.ownerUid; // read from owner's data
-          STATE.email = null;
+          S.shareMode = true;
+          S.shareOwner = sc.ownerUid;
+          S.uid = sc.ownerUid;
+          S.email = null;
+          gi("btnAddVideo").style.display = "none";
+          gi("btnAddFolder").style.display = "none";
+          gi("btnShareHdr").style.display = "none";
           showApp();
-          document
-            .querySelectorAll(
-              '[onclick*="openAddVideo"],[onclick*="doLogout"],[id="addBtn"]',
-            )
-            .forEach((el) => (el.style.opacity = ".4"));
-          // Load only videos matching scope
           await loadAll(sc);
-          // Hide write actions
-          document.querySelectorAll(".btn-primary, .btn-icon").forEach((b) => {
-            if (b.title !== "Exporter JSON") b.style.display = "none";
-          });
-          toast("Bibliothèque partagée chargée ✓", "info");
+          toast("Bibliothèque partagée chargée", "info");
         } catch (e) {
           authErr("Erreur : " + e.message);
         }
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  DATA LOADING
-      // ─────────────────────────────────────────────────────────
+      function authErr(msg) {
+        gi("authErr").textContent = msg;
+      }
+      function setBtn(id, disabled, txt) {
+        const b = gi(id);
+        b.disabled = disabled;
+        b.textContent = txt;
+      }
+      function fmtErr(code) {
+        return (
+          {
+            "auth/invalid-email": "Email invalide.",
+            "auth/user-not-found": "Aucun compte avec cet email.",
+            "auth/wrong-password": "Mot de passe incorrect.",
+            "auth/email-already-in-use": "Cet email est déjà utilisé.",
+            "auth/weak-password": "Mot de passe trop faible.",
+            "auth/invalid-credential": "Email ou mot de passe incorrect.",
+            "auth/too-many-requests":
+              "Trop de tentatives. Réessayez plus tard.",
+          }[code] || "Erreur : " + code
+        );
+      }
+
+      function showAuth() {
+        gi("authScreen").style.display = "flex";
+        gi("appShell").classList.remove("on");
+      }
+      function showApp() {
+        gi("authScreen").style.display = "none";
+        gi("appShell").classList.add("on");
+        gi("userChip").textContent = S.shareMode
+          ? "👁 Lecture seule"
+          : S.email || "";
+        gi("stTxt").textContent = S.shareMode
+          ? "Bibliothèque partagée"
+          : "Connecté";
+      }
+
+      // ── CHARGEMENT DONNÉES ───────────────────────────────────
       async function loadAll(shareCode = null) {
         gridSpin(true);
         try {
           const [vids, fols] = await Promise.all([
-            window._FB.getVideos(STATE.uid),
-            window._FB.getFolders(STATE.uid),
+            window._FB.getVideos(S.uid),
+            window._FB.getFolders(S.uid),
           ]);
-
-          STATE.folders = fols;
-
-          if (shareCode && shareCode.scope === "folder") {
-            const allowed = getDescendantFolderIds(shareCode.folderId, fols);
-            allowed.push(shareCode.folderId);
-            STATE.videos = vids.filter((v) =>
-              allowed.includes(v.folderId || ""),
-            );
+          S.folders = fols;
+          if (shareCode?.scope === "folder") {
+            const ids = [
+              shareCode.folderId,
+              ...descFolders(shareCode.folderId, fols),
+            ];
+            S.videos = vids.filter((v) => ids.includes(v.folderId || ""));
           } else {
-            STATE.videos = vids;
+            S.videos = vids;
           }
-
-          buildSidebar();
+          buildTree();
           renderGrid();
-          toast("Bibliothèque chargée ✓", "ok");
         } catch (e) {
           toast("Erreur chargement : " + e.message, "err");
         }
         gridSpin(false);
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  SIDEBAR / FOLDER TREE
-      // ─────────────────────────────────────────────────────────
-      function getDescendantFolderIds(parentId, allFolders) {
-        const children = allFolders
-          .filter((f) => f.parentId === parentId)
-          .map((f) => f.id);
-        return children.flatMap((cid) => [
-          cid,
-          ...getDescendantFolderIds(cid, allFolders),
-        ]);
+      // ── ARBRE DE DOSSIERS ────────────────────────────────────
+      function descFolders(pid, all) {
+        return all
+          .filter((f) => f.parentId === pid)
+          .flatMap((f) => [f.id, ...descFolders(f.id, all)]);
+      }
+      function folderDepth(id, all, d = 0) {
+        const f = all.find((x) => x.id === id);
+        if (!f || !f.parentId) return d;
+        return folderDepth(f.parentId, all, d + 1);
       }
 
-      function folderDepth(folderId, allFolders, depth = 0) {
-        const f = allFolders.find((x) => x.id === folderId);
-        if (!f || !f.parentId) return depth;
-        return folderDepth(f.parentId, allFolders, depth + 1);
+      function buildTree() {
+        const t = gi("tree");
+        t.innerHTML = "";
+        t.appendChild(mkNode("Tout", null, S.videos.length, 0));
+        (function recurse(pid, container, lvl) {
+          S.folders
+            .filter((f) => (f.parentId || "") === (pid || ""))
+            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+            .forEach((f) => {
+              const cnt = S.videos.filter((v) => v.folderId === f.id).length;
+              const node = mkNode(f.name, f.id, cnt, lvl);
+              container.appendChild(node);
+              if (lvl < 2) {
+                const sub = document.createElement("div");
+                sub.className = "tree-children";
+                recurse(f.id, sub, lvl + 1);
+                if (sub.children.length) container.appendChild(sub);
+              }
+            });
+        })(null, t, 0);
       }
 
-      function buildSidebar() {
-        const tree = document.getElementById("sidebarTree");
-        tree.innerHTML = "";
-
-        // Root item
-        const root = makeTreeItem("📁", "Tout", null, STATE.videos.length);
-        tree.appendChild(root);
-
-        // Recursive render
-        function renderLevel(parentId, container, level = 0) {
-          const children = STATE.folders.filter(
-            (f) => (f.parentId || "") === (parentId || ""),
-          );
-          children.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-          children.forEach((folder) => {
-            const count = STATE.videos.filter(
-              (v) => v.folderId === folder.id,
-            ).length;
-            const item = makeTreeItem(
-              "📂",
-              folder.name,
-              folder.id,
-              count,
-              level,
-            );
-            container.appendChild(item);
-            if (level < 2) {
-              // max 3 levels (0,1,2)
-              const sub = document.createElement("div");
-              sub.className = "tree-children";
-              renderLevel(folder.id, sub, level + 1);
-              if (sub.children.length) container.appendChild(sub);
-            }
-          });
-        }
-        renderLevel(null, tree, 0);
-      }
-
-      function makeTreeItem(icon, label, folderId, count, level = 0) {
+      function mkNode(label, fid, cnt, lvl) {
         const el = document.createElement("div");
-        el.className =
-          "tree-item" + (STATE.currentFolder === folderId ? " active" : "");
+        el.className = "tree-item" + (S.curFolder === fid ? " active" : "");
         el.innerHTML = `
-    <svg class="ti-icon" viewBox="0 0 16 16"><path d="${folderId ? "M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31z" : "M1 1.5A1.5 1.5 0 0 1 2.5 0h11A1.5 1.5 0 0 1 15 1.5v13A1.5 1.5 0 0 1 13.5 16h-11A1.5 1.5 0 0 1 1 14.5v-13z"}"/></svg>
+    <span style="font-size:.9rem;flex-shrink:0;">${fid ? "📂" : "📁"}</span>
     <span class="ti-label">${esc(label)}</span>
-    <span class="ti-count">${count}</span>
-    ${folderId && !STATE.shareMode ? `<button class="ti-menu" onclick="folderCtx(event,'${folderId}')">⋯</button>` : ""}
+    <span class="ti-count">${cnt}</span>
+    ${fid && !S.shareMode ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ""}
   `;
         el.addEventListener("click", (e) => {
-          if (e.target.closest(".ti-menu")) return;
-          navigateTo(folderId);
+          if (e.target.closest(".ti-btn")) return;
+          nav(fid);
         });
         return el;
       }
 
-      function navigateTo(folderId) {
-        STATE.currentFolder = folderId;
-        buildSidebar();
-        updateBreadcrumb();
+      function nav(fid) {
+        S.curFolder = fid;
+        buildTree();
+        updateBC();
         renderGrid();
       }
 
-      function updateBreadcrumb() {
-        const bc = document.getElementById("breadcrumb");
+      function updateBC() {
+        const bc = gi("breadcrumb");
         bc.innerHTML = "";
-        const addCrumb = (label, fid) => {
-          const sp = document.createElement("span");
-          sp.className = "bc-item";
-          sp.textContent = label;
-          sp.onclick = () => navigateTo(fid);
-          bc.appendChild(sp);
+        const add = (lbl, fid) => {
+          const s = document.createElement("span");
+          s.className = "bc";
+          s.textContent = lbl;
+          s.onclick = () => nav(fid);
+          bc.appendChild(s);
         };
-        const addSep = () => {
+        const sep = () => {
           const s = document.createElement("span");
           s.className = "bc-sep";
           s.textContent = " / ";
           bc.appendChild(s);
         };
-
-        addCrumb("📁 Tout", null);
-
-        // Build path from root to currentFolder
-        function getPath(fid) {
-          const f = STATE.folders.find((x) => x.id === fid);
-          if (!f) return [];
-          const parent = f.parentId ? getPath(f.parentId) : [];
-          return [...parent, f];
-        }
-
-        if (STATE.currentFolder) {
-          getPath(STATE.currentFolder).forEach((f) => {
-            addSep();
-            addCrumb("📂 " + f.name, f.id);
-          });
+        add("📁 Tout", null);
+        if (S.curFolder) {
+          (function getPath(id) {
+            const f = S.folders.find((x) => x.id === id);
+            if (!f) return;
+            if (f.parentId) getPath(f.parentId);
+            sep();
+            add("📂 " + f.name, f.id);
+          })(S.curFolder);
         }
       }
 
-      // Folder context: rename / delete
-      function folderCtx(e, folderId) {
+      function folderMenu(e, fid) {
         e.stopPropagation();
-        const folder = STATE.folders.find((f) => f.id === folderId);
-        if (!folder) return;
-        const name = prompt("Renommer le dossier :", folder.name);
-        if (name === null) return;
-        if (name.trim()) {
-          window._FB
-            .updateFolder(STATE.uid, folderId, { name: name.trim() })
-            .then(() => {
-              folder.name = name.trim();
-              buildSidebar();
-              toast("Dossier renommé", "ok");
+        const f = S.folders.find((x) => x.id === fid);
+        if (!f) return;
+        const action = prompt(
+          `Dossier : "${f.name}"\n\nTapez un nouveau nom pour renommer,\nou tapez SUPPRIMER pour supprimer :`,
+        );
+        if (action === null) return;
+        if (action.trim().toUpperCase() === "SUPPRIMER") {
+          if (
+            !confirm(
+              `Supprimer "${f.name}" ? Les vidéos resteront à la racine.`,
+            )
+          )
+            return;
+          S.videos
+            .filter((v) => v.folderId === fid)
+            .forEach((v) => {
+              window._FB.updateVideo(S.uid, v.id, { folderId: "" });
+              v.folderId = "";
             });
+          window._FB.deleteFolder(S.uid, fid);
+          S.folders = S.folders.filter((x) => x.id !== fid);
+          if (S.curFolder === fid) S.curFolder = null;
+          buildTree();
+          renderGrid();
+          toast("Dossier supprimé", "ok");
+        } else if (action.trim()) {
+          window._FB.updateFolder(S.uid, fid, { name: action.trim() });
+          f.name = action.trim();
+          buildTree();
+          toast("Dossier renommé", "ok");
         }
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  GRID RENDER
-      // ─────────────────────────────────────────────────────────
+      // ── GRILLE VIDÉOS ────────────────────────────────────────
       function renderGrid() {
-        const q = (document.getElementById("search").value || "").toLowerCase();
-        const sort = document.getElementById("sortSel").value;
-        const fid = STATE.currentFolder;
+        const q = gi("search").value.toLowerCase();
+        const sort = gi("sortSel").value;
+        const fid = S.curFolder;
 
-        // Filter
-        let list = STATE.videos.filter((v) => {
-          const inFolder =
-            fid === null
-              ? true // show all when at root
-              : (v.folderId || "") === fid;
-          const matchQ =
+        let list = S.videos.filter((vid) => {
+          const inF = fid === null || (vid.folderId || "") === fid;
+          const mQ =
             !q ||
-            (v.title || "").toLowerCase().includes(q) ||
-            (v.category || "").toLowerCase().includes(q) ||
-            (v.notes || "").toLowerCase().includes(q);
-          return inFolder && matchQ;
+            (vid.title || "").toLowerCase().includes(q) ||
+            (vid.category || "").toLowerCase().includes(q) ||
+            (vid.notes || "").toLowerCase().includes(q);
+          return inF && mQ;
         });
 
-        // Sort
         list = [...list].sort((a, b) => {
-          if (sort === "addedDesc") return tsOf(b.addedAt) - tsOf(a.addedAt);
-          if (sort === "addedAsc") return tsOf(a.addedAt) - tsOf(b.addedAt);
-          if (sort === "publishedDesc")
-            return tsOf(b.publishedAt) - tsOf(a.publishedAt);
-          if (sort === "publishedAsc")
-            return tsOf(a.publishedAt) - tsOf(b.publishedAt);
+          if (sort === "addedDesc") return ts(b.addedAt) - ts(a.addedAt);
+          if (sort === "addedAsc") return ts(a.addedAt) - ts(b.addedAt);
+          if (sort === "pubDesc") return ts(b.publishedAt) - ts(a.publishedAt);
+          if (sort === "pubAsc") return ts(a.publishedAt) - ts(b.publishedAt);
           if (sort === "titleAsc")
             return (a.title || "").localeCompare(b.title || "");
           if (sort === "titleDesc")
@@ -1969,151 +1927,132 @@
           return 0;
         });
 
-        document.getElementById("cnt").textContent = list.length;
-        const grid = document.getElementById("grid");
-        [...grid.querySelectorAll(".card,.empty-state,.sp-wrap")].forEach(
-          (el) => el.remove(),
+        gi("cnt").textContent = list.length;
+        const grid = gi("grid");
+        [...grid.querySelectorAll(".card,.empty,.spin-wrap")].forEach((el) =>
+          el.remove(),
         );
 
         if (!list.length) {
           const el = document.createElement("div");
-          el.className = "empty-state";
-          el.innerHTML = `<div class="empty-glyph">▶</div>
-      <div class="empty-title">${q ? "Aucun résultat" : "Dossier vide"}</div>
-      <div class="empty-sub">${q ? "Modifiez votre recherche." : "Ajoutez des vidéos ou naviguez dans un autre dossier."}</div>`;
+          el.className = "empty";
+          el.innerHTML = `<div class="empty-g">▶</div>
+      <div class="empty-t">${q ? "Aucun résultat" : "Vide"}</div>
+      <div class="empty-s">${q ? "Modifiez la recherche." : 'Ajoutez votre première vidéo avec "+ Vidéo".'}</div>`;
           grid.appendChild(el);
           return;
         }
 
-        list.forEach((v, i) => {
+        list.forEach((vid, i) => {
           const c = document.createElement("div");
           c.className = "card";
-          c.style.animationDelay = `${i * 30}ms`;
+          c.style.animationDelay = `${i * 28}ms`;
           const dateLabel =
-            sort.startsWith("published") && v.publishedAt
-              ? "📅 " + fmtDate(v.publishedAt)
-              : "+ " + fmtTs(v.addedAt);
-
+            sort.startsWith("pub") && vid.publishedAt
+              ? "📅 " + fmtDate(vid.publishedAt)
+              : "+ " + fmtTs(vid.addedAt);
           c.innerHTML = `
-      <div class="card-thumb">
-        <img src="https://img.youtube.com/vi/${v.ytId}/mqdefault.jpg" alt="${esc(v.title)}" loading="lazy"
-          onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 320 180\'><rect width=\'320\' height=\'180\' fill=\'%230a0b10\'/><text x=\'160\' y=\'98\' text-anchor=\'middle\' fill=\'%231c1f2b\' font-size=\'52\' font-family=\'sans-serif\'>▶</text></svg>'">
+      <div class="thumb">
+        <img src="https://img.youtube.com/vi/${vid.ytId}/mqdefault.jpg" loading="lazy"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 320 180\'><rect width=\'320\' height=\'180\' fill=\'%230a0b10\'/><text x=\'160\' y=\'100\' text-anchor=\'middle\' fill=\'%231c1f2b\' font-size=\'48\' font-family=\'sans-serif\'>▶</text></svg>'" alt="">
         <div class="play-ring"><div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
-        ${v.category ? `<span class="cat-pill">${esc(v.category)}</span>` : ""}
+        ${vid.category ? `<span class="cpill2">${esc(vid.category)}</span>` : ""}
       </div>
       <div class="card-body">
-        <div class="card-title">${esc(v.title)}</div>
-        <div class="card-footer">
+        <div class="card-title" title="${esc(vid.title)}">${esc(vid.title)}</div>
+        <div class="card-foot">
           <span class="card-date">${dateLabel}</span>
           ${
-            !STATE.shareMode
+            !S.shareMode
               ? `
-          <button class="card-action" title="Modifier" onclick="openEditVideoModal('${v.id}',event)">
-            <svg viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
+          <button class="ca" title="Modifier" onclick="openEditModal('${vid.id}',event)">
+            <svg viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"/></svg>
           </button>
-          <button class="card-action" title="Plus…" onclick="openCtxMenu('${v.id}',event)">
+          <button class="ca" title="Plus…" onclick="openCtx('${vid.id}',event)">
             <svg viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
           </button>`
               : ""
           }
         </div>
-      </div>
-    `;
-          c.querySelector(".card-thumb").addEventListener("click", () =>
-            window.open(v.url, "_blank", "noopener"),
+      </div>`;
+          c.querySelector(".thumb").addEventListener("click", () =>
+            window.open(vid.url, "_blank", "noopener"),
           );
           grid.appendChild(c);
         });
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  CONTEXT MENU
-      // ─────────────────────────────────────────────────────────
-      function openCtxMenu(videoId, e) {
-        e.stopPropagation();
-        STATE.ctxVideoId = videoId;
-        const menu = document.getElementById("ctxMenu");
-        menu.classList.add("open");
-        const x = Math.min(e.clientX, window.innerWidth - 190);
-        const y = Math.min(e.clientY, window.innerHeight - 130);
-        menu.style.left = x + "px";
-        menu.style.top = y + "px";
+      // ── PRÉVISUALISATION MINIATURE ───────────────────────────
+      function previewThumb() {
+        const ytId = extractYtId(gi("vmUrl").value);
+        const wrap = gi("thumbPreviewWrap");
+        if (ytId) {
+          wrap.style.display = "block";
+          gi("thumbPreview").src =
+            `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        } else {
+          wrap.style.display = "none";
+        }
       }
 
-      document.addEventListener("click", () => {
-        document.getElementById("ctxMenu").classList.remove("open");
-      });
-
-      function ctxAction(action) {
-        const id = STATE.ctxVideoId;
-        if (!id) return;
-        if (action === "edit") openEditVideoModal(id);
-        if (action === "move") openMoveModal(id);
-        if (action === "delete") deleteVideo(id);
-      }
-
-      // ─────────────────────────────────────────────────────────
-      //  VIDEO MODAL (add / edit)
-      // ─────────────────────────────────────────────────────────
-      function populateFolderSelect(selId, currentFolderId = "") {
-        const sel = document.getElementById(selId);
+      // ── MODAL VIDÉO ──────────────────────────────────────────
+      function fillFolderSel(selId, currentFid = "") {
+        const sel = gi(selId);
         sel.innerHTML = '<option value="">— Racine —</option>';
-        // Only folders up to depth <3
-        STATE.folders
-          .filter((f) => folderDepth(f.id, STATE.folders) < 3)
+        S.folders
+          .filter((f) => folderDepth(f.id, S.folders) < 3)
           .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
           .forEach((f) => {
-            const depth = folderDepth(f.id, STATE.folders);
-            const prefix = "　".repeat(depth);
+            const d = folderDepth(f.id, S.folders);
             const o = document.createElement("option");
             o.value = f.id;
-            o.textContent = prefix + "📂 " + f.name;
-            if (f.id === currentFolderId) o.selected = true;
+            o.textContent = "\u3000".repeat(d) + "📂 " + f.name;
+            if (f.id === currentFid) o.selected = true;
             sel.appendChild(o);
           });
       }
 
-      function openAddVideoModal() {
-        STATE.editingVideoId = null;
-        document.getElementById("videoModalTitle").textContent =
-          "Nouvelle vidéo";
-        document.getElementById("vmSaveBtn").textContent = "Enregistrer";
+      function openVideoModal() {
+        S.editVid = null;
+        gi("videoModalTitle").textContent = "Nouvelle vidéo";
+        gi("vmSaveBtn").textContent = "Enregistrer";
         ["vmUrl", "vmTitle", "vmCat", "vmNotes"].forEach(
-          (id) => (document.getElementById(id).value = ""),
+          (id) => (gi(id).value = ""),
         );
-        document.getElementById("vmPublished").value = "";
-        populateFolderSelect("vmFolder", STATE.currentFolder || "");
-        openModal("videoModal");
+        gi("vmPub").value = "";
+        gi("thumbPreviewWrap").style.display = "none";
+        fillFolderSel("vmFolder", S.curFolder || "");
+        openModal("modalVideo");
+        setTimeout(() => gi("vmUrl").focus(), 80);
       }
 
-      function openEditVideoModal(videoId, e) {
+      function openEditModal(vidId, e) {
         if (e) e.stopPropagation();
-        const v = STATE.videos.find((x) => x.id === videoId);
-        if (!v) return;
-        STATE.editingVideoId = videoId;
-        document.getElementById("videoModalTitle").textContent =
-          "Modifier la vidéo";
-        document.getElementById("vmSaveBtn").textContent = "Mettre à jour";
-        document.getElementById("vmUrl").value = v.url || "";
-        document.getElementById("vmTitle").value = v.title || "";
-        document.getElementById("vmCat").value = v.category || "";
-        document.getElementById("vmNotes").value = v.notes || "";
-        document.getElementById("vmPublished").value = v.publishedAt
-          ? v.publishedAt.substring(0, 10)
+        const vid = S.videos.find((x) => x.id === vidId);
+        if (!vid) return;
+        S.editVid = vidId;
+        gi("videoModalTitle").textContent = "Modifier la vidéo";
+        gi("vmSaveBtn").textContent = "Mettre à jour";
+        gi("vmUrl").value = vid.url || "";
+        gi("vmTitle").value = vid.title || "";
+        gi("vmCat").value = vid.category || "";
+        gi("vmNotes").value = vid.notes || "";
+        gi("vmPub").value = vid.publishedAt
+          ? String(vid.publishedAt).substring(0, 10)
           : "";
-        populateFolderSelect("vmFolder", v.folderId || "");
-        openModal("videoModal");
+        fillFolderSel("vmFolder", vid.folderId || "");
+        previewThumb();
+        openModal("modalVideo");
       }
 
       async function saveVideo() {
-        const url = document.getElementById("vmUrl").value.trim();
-        const title = document.getElementById("vmTitle").value.trim();
-        const cat = document.getElementById("vmCat").value.trim();
-        const notes = document.getElementById("vmNotes").value.trim();
-        const pub = document.getElementById("vmPublished").value;
-        const folderId = document.getElementById("vmFolder").value;
+        const url = gi("vmUrl").value.trim();
+        const title = gi("vmTitle").value.trim();
+        const cat = gi("vmCat").value.trim();
+        const notes = gi("vmNotes").value.trim();
+        const pub = gi("vmPub").value;
+        const fid = gi("vmFolder").value;
         const ytId = extractYtId(url);
-
         if (!url || !title) {
           toast("URL et titre requis", "err");
           return;
@@ -2123,223 +2062,209 @@
           return;
         }
 
-        const btn = document.getElementById("vmSaveBtn");
+        const btn = gi("vmSaveBtn");
         btn.disabled = true;
         btn.textContent = "…";
-
         const data = {
           url,
           ytId,
           title,
           category: cat,
           notes,
-          folderId,
+          folderId: fid,
           publishedAt: pub || null,
         };
-
         try {
-          if (STATE.editingVideoId) {
-            await window._FB.updateVideo(STATE.uid, STATE.editingVideoId, data);
-            const idx = STATE.videos.findIndex(
-              (v) => v.id === STATE.editingVideoId,
-            );
-            if (idx !== -1)
-              STATE.videos[idx] = { ...STATE.videos[idx], ...data };
+          if (S.editVid) {
+            await window._FB.updateVideo(S.uid, S.editVid, data);
+            const idx = S.videos.findIndex((x) => x.id === S.editVid);
+            if (idx !== -1) S.videos[idx] = { ...S.videos[idx], ...data };
             toast("Vidéo mise à jour ✓", "ok");
           } else {
-            const ref = await window._FB.addVideo(STATE.uid, data);
-            STATE.videos.unshift({
+            const ref = await window._FB.addVideo(S.uid, data);
+            S.videos.unshift({
               id: ref.id,
               ...data,
               addedAt: new Date().toISOString(),
             });
             toast("Vidéo ajoutée ✓", "ok");
           }
-          buildSidebar();
+          buildTree();
           renderGrid();
-          closeModal("videoModal");
+          closeModal("modalVideo");
         } catch (e) {
           toast("Erreur : " + e.message, "err");
         }
         btn.disabled = false;
-        btn.textContent = STATE.editingVideoId
-          ? "Mettre à jour"
-          : "Enregistrer";
+        btn.textContent = S.editVid ? "Mettre à jour" : "Enregistrer";
       }
 
-      async function deleteVideo(videoId) {
+      async function deleteVideo(vidId) {
         if (!confirm("Supprimer cette vidéo ?")) return;
         try {
-          await window._FB.deleteVideo(STATE.uid, videoId);
-          STATE.videos = STATE.videos.filter((v) => v.id !== videoId);
-          buildSidebar();
+          await window._FB.deleteVideo(S.uid, vidId);
+          S.videos = S.videos.filter((x) => x.id !== vidId);
+          buildTree();
           renderGrid();
           toast("Vidéo supprimée", "ok");
         } catch (e) {
-          toast("Erreur suppression", "err");
+          toast("Erreur : " + e.message, "err");
         }
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  FOLDER MODAL
-      // ─────────────────────────────────────────────────────────
-      function openFolderModal(parentId) {
-        document.getElementById("fmName").value = "";
-        populateFolderSelect("fmParent", parentId || "");
-        // Disable folders already at depth 2 (can't go deeper)
-        const sel = document.getElementById("fmParent");
-        [...sel.options].forEach((o) => {
-          if (o.value) {
-            const d = folderDepth(o.value, STATE.folders);
-            if (d >= 2) {
-              o.disabled = true;
-              o.textContent += " (niveau max)";
-            }
+      // ── MODAL DOSSIER ────────────────────────────────────────
+      function openFolderModal() {
+        gi("fmName").value = "";
+        fillFolderSel("fmParent", "");
+        [...gi("fmParent").options].forEach((o) => {
+          if (o.value && folderDepth(o.value, S.folders) >= 2) {
+            o.disabled = true;
+            o.textContent += " (niveau max)";
           }
         });
-        openModal("folderModal");
+        openModal("modalFolder");
+        setTimeout(() => gi("fmName").focus(), 80);
       }
 
       async function saveFolder() {
-        const name = document.getElementById("fmName").value.trim();
-        const parentId = document.getElementById("fmParent").value;
+        const name = gi("fmName").value.trim();
+        const pid = gi("fmParent").value;
         if (!name) {
           toast("Nom requis", "err");
           return;
         }
-
-        // Depth check
-        if (parentId) {
-          const d = folderDepth(parentId, STATE.folders);
-          if (d >= 2) {
-            toast("Niveau maximum atteint (3 niveaux)", "err");
-            return;
-          }
+        if (pid && folderDepth(pid, S.folders) >= 2) {
+          toast("Niveau maximum (3 niveaux)", "err");
+          return;
         }
-
         try {
-          const ref = await window._FB.addFolder(STATE.uid, {
+          const ref = await window._FB.addFolder(S.uid, {
             name,
-            parentId: parentId || "",
+            parentId: pid,
           });
-          STATE.folders.push({ id: ref.id, name, parentId: parentId || "" });
-          buildSidebar();
-          closeModal("folderModal");
+          S.folders.push({ id: ref.id, name, parentId: pid });
+          buildTree();
+          closeModal("modalFolder");
           toast("Dossier créé ✓", "ok");
         } catch (e) {
           toast("Erreur : " + e.message, "err");
         }
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  MOVE MODAL
-      // ─────────────────────────────────────────────────────────
-      function openMoveModal(videoId) {
-        STATE.movingVideoId = videoId;
-        const v = STATE.videos.find((x) => x.id === videoId);
-        document.getElementById("movingTitle").textContent = v ? v.title : "";
-        populateFolderSelect("moveTarget", v?.folderId || "");
-        openModal("moveModal");
+      // ── MODAL DÉPLACER ───────────────────────────────────────
+      function openMoveModal(vidId) {
+        S.moveVid = vidId;
+        const vid = S.videos.find((x) => x.id === vidId);
+        gi("movingLabel").textContent = vid?.title || "";
+        fillFolderSel("moveTarget", vid?.folderId || "");
+        openModal("modalMove");
       }
 
       async function confirmMove() {
-        const target = document.getElementById("moveTarget").value;
-        const id = STATE.movingVideoId;
-        if (!id) return;
+        const target = gi("moveTarget").value;
+        if (!S.moveVid) return;
         try {
-          await window._FB.updateVideo(STATE.uid, id, { folderId: target });
-          const v = STATE.videos.find((x) => x.id === id);
-          if (v) v.folderId = target;
-          buildSidebar();
+          await window._FB.updateVideo(S.uid, S.moveVid, { folderId: target });
+          const vid = S.videos.find((x) => x.id === S.moveVid);
+          if (vid) vid.folderId = target;
+          buildTree();
           renderGrid();
-          closeModal("moveModal");
+          closeModal("modalMove");
           toast("Vidéo déplacée ✓", "ok");
         } catch (e) {
           toast("Erreur : " + e.message, "err");
         }
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  SHARE MODAL
-      // ─────────────────────────────────────────────────────────
-      document.addEventListener("DOMContentLoaded", () => {
-        document
-          .getElementById("shareScope")
-          .addEventListener("change", function () {
-            document.getElementById("shareFolderField").style.display =
-              this.value === "folder" ? "block" : "none";
-          });
-      });
+      // ── CONTEXT MENU ─────────────────────────────────────────
+      function openCtx(vidId, e) {
+        e.stopPropagation();
+        S.ctxVid = vidId;
+        const ctx = gi("ctx");
+        ctx.classList.add("on");
+        ctx.style.left = Math.min(e.clientX, window.innerWidth - 180) + "px";
+        ctx.style.top = Math.min(e.clientY, window.innerHeight - 130) + "px";
+      }
+      document.addEventListener("click", () =>
+        gi("ctx").classList.remove("on"),
+      );
+      function ctxDo(a) {
+        const id = S.ctxVid;
+        if (!id) return;
+        if (a === "edit") openEditModal(id);
+        if (a === "move") openMoveModal(id);
+        if (a === "delete") deleteVideo(id);
+      }
+
+      // ── MODAL PARTAGE ────────────────────────────────────────
+      function toggleShareFolder() {
+        gi("shareFolderWrap").style.display =
+          gi("shareScope").value === "folder" ? "block" : "none";
+      }
 
       async function openShareModal() {
-        populateFolderSelect("shareFolder");
-        const list = document.getElementById("shareList");
+        fillFolderSel("shareFolder", "");
+        gi("newCodeWrap").style.display = "none";
+        gi("shareNote").value = "";
+        gi("shareScope").value = "all";
+        toggleShareFolder();
+        const list = gi("shareList");
         list.innerHTML =
           '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
-        openModal("shareModal");
-        document.getElementById("newCodeBox").style.display = "none";
-
+        openModal("modalShare");
         try {
-          const codes = await window._FB.getMyShareCodes(STATE.uid);
+          const codes = await window._FB.getMyCodes(S.uid);
           list.innerHTML = "";
           if (!codes.length) {
             list.innerHTML =
-              '<div style="font-size:.78rem;color:var(--muted);padding:6px;">Aucun code actif</div>';
+              '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun code actif</div>';
             return;
           }
           codes.forEach((sc) => {
+            const f = S.folders.find((x) => x.id === sc.folderId);
             const row = document.createElement("div");
             row.className = "share-row";
             row.innerHTML = `
-        <span class="share-row-code">${sc.id}</span>
-        <span class="share-row-scope">${sc.scope === "folder" ? "📂 " + (STATE.folders.find((f) => f.id === sc.folderId)?.name || "?") : "🌐 Tout"}</span>
-        ${sc.note ? `<span style="color:var(--muted);font-size:.7rem;">${esc(sc.note)}</span>` : ""}
-        <button class="share-row-del" onclick="revokeCode('${sc.id}',this)" title="Révoquer">
+        <span class="sr-code">${sc.id}</span>
+        <span class="sr-scope">${sc.scope === "folder" ? "📂 " + (f?.name || "?") : "🌐 Tout"}</span>
+        ${sc.note ? `<span style="color:var(--muted);font-size:.68rem;">${esc(sc.note)}</span>` : ""}
+        <button class="sr-del" onclick="revokeCode('${sc.id}',this)" title="Révoquer">
           <svg viewBox="0 0 16 16" style="width:12px;height:12px;fill:currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-        </button>
-      `;
+        </button>`;
             list.appendChild(row);
           });
         } catch (e) {
           list.innerHTML =
-            '<div style="color:var(--accent);font-size:.78rem;padding:6px;">Erreur chargement</div>';
+            '<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur chargement</div>';
         }
       }
 
-      async function generateShareCode() {
-        const scope = document.getElementById("shareScope").value;
-        const folderId = document.getElementById("shareFolder").value;
-        const note = document.getElementById("shareNote").value.trim();
-        if (scope === "folder" && !folderId) {
+      async function generateCode() {
+        const scope = gi("shareScope").value;
+        const fid = gi("shareFolder").value;
+        const note = gi("shareNote").value.trim();
+        if (scope === "folder" && !fid) {
           toast("Choisissez un dossier", "err");
           return;
         }
-
-        const code = genCode(8);
-        const data = { ownerUid: STATE.uid, scope, note };
-        if (scope === "folder") data.folderId = folderId;
-
+        const code = mkCode(8);
+        const data = { ownerUid: S.uid, scope, note };
+        if (scope === "folder") data.folderId = fid;
         try {
-          await window._FB.createShareCode(code, data);
-          const box = document.getElementById("newCodeDisplay");
-          box.textContent = code;
-          document.getElementById("newCodeBox").style.display = "block";
-          toast("Code créé ! Cliquez pour copier.", "ok");
-          openShareModal(); // refresh list
+          await window._FB.createCode(code, data);
+          gi("newCodeDisplay").textContent = code;
+          gi("newCodeWrap").style.display = "block";
+          toast("Code créé — cliquez pour copier", "ok");
+          openShareModal();
         } catch (e) {
           toast("Erreur : " + e.message, "err");
         }
       }
 
       async function revokeCode(code, btn) {
-        if (
-          !confirm(
-            "Révoquer ce code ? Les personnes qui l'utilisent perdront l'accès.",
-          )
-        )
-          return;
+        if (!confirm("Révoquer ce code ?")) return;
         try {
-          await window._FB.revokeShareCode(code);
+          await window._FB.revokeCode(code);
           btn.closest(".share-row").remove();
           toast("Code révoqué", "ok");
         } catch (e) {
@@ -2353,53 +2278,57 @@
           .then(() => toast("Code copié !", "info"));
       }
 
-      function genCode(len) {
-        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      function mkCode(len) {
+        const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         return Array.from(
           { length: len },
-          () => chars[Math.floor(Math.random() * chars.length)],
+          () => c[Math.floor(Math.random() * c.length)],
         ).join("");
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  EXPORT JSON
-      // ─────────────────────────────────────────────────────────
+      // ── EXPORT JSON ──────────────────────────────────────────
       function exportJSON() {
         const data = {
           exportedAt: new Date().toISOString(),
-          user: STATE.email,
-          folders: STATE.folders,
-          videos: STATE.videos,
+          user: S.email,
+          folders: S.folders,
+          videos: S.videos,
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], {
           type: "application/json",
         });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `videovault-export-${new Date().toISOString().substring(0, 10)}.json`;
+        a.download = `videovault-${new Date().toISOString().substring(0, 10)}.json`;
         a.click();
         toast("Export téléchargé ✓", "ok");
       }
 
-      // ─────────────────────────────────────────────────────────
-      //  MODAL HELPERS
-      // ─────────────────────────────────────────────────────────
+      // ── MODALS ───────────────────────────────────────────────
       function openModal(id) {
-        document.getElementById(id).classList.add("open");
+        gi(id).classList.add("on");
       }
       function closeModal(id) {
-        document.getElementById(id).classList.remove("open");
+        gi(id).classList.remove("on");
       }
-
       document.querySelectorAll(".overlay").forEach((ov) => {
         ov.addEventListener("click", (e) => {
-          if (e.target === ov) ov.classList.remove("open");
+          if (e.target === ov) ov.classList.remove("on");
         });
       });
 
-      // ─────────────────────────────────────────────────────────
-      //  UTILITIES
-      // ─────────────────────────────────────────────────────────
+      // ── UTILITAIRES ──────────────────────────────────────────
+      function gi(id) {
+        return document.getElementById(id);
+      }
+      function esc(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
       function extractYtId(url) {
         try {
           const u = new URL(url);
@@ -2413,13 +2342,11 @@
         }
       }
 
-      function tsOf(val) {
+      function ts(val) {
         if (!val) return 0;
-        if (val && typeof val === "object" && val.seconds)
-          return val.seconds * 1000;
+        if (typeof val === "object" && val.seconds) return val.seconds * 1000;
         return new Date(val).getTime() || 0;
       }
-
       function fmtTs(val) {
         if (!val) return "—";
         if (typeof val === "object" && val.seconds)
@@ -2428,7 +2355,6 @@
           );
         return fmtDate(String(val).substring(0, 10));
       }
-
       function fmtDate(iso) {
         try {
           return new Date(iso).toLocaleDateString("fr-FR", {
@@ -2441,67 +2367,40 @@
         }
       }
 
-      function esc(s) {
-        return String(s || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
       function gridSpin(on) {
-        const grid = document.getElementById("grid");
-        [...grid.querySelectorAll(".sp-wrap")].forEach((el) => el.remove());
+        const g = gi("grid");
+        [...g.querySelectorAll(".spin-wrap")].forEach((el) => el.remove());
         if (on) {
           const el = document.createElement("div");
-          el.className = "sp-wrap";
+          el.className = "spin-wrap";
           el.innerHTML =
             '<div class="sp"></div><div class="sp"></div><div class="sp"></div>';
-          grid.appendChild(el);
+          g.appendChild(el);
         }
       }
 
       let _tt;
       function toast(msg, type = "ok") {
-        const el = document.getElementById("toast");
-        el.className = `toast ${type} show`;
-        document.getElementById("toastMsg").textContent = msg;
+        const el = gi("toast");
+        el.className = `toast ${type} on`;
+        gi("toastMsg").textContent = msg;
         clearTimeout(_tt);
-        _tt = setTimeout(() => el.classList.remove("show"), 3200);
+        _tt = setTimeout(() => el.classList.remove("on"), 3200);
       }
 
-      // Keyboard shortcuts
+      // ── RACCOURCIS CLAVIER ───────────────────────────────────
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           document
-            .querySelectorAll(".overlay.open")
-            .forEach((o) => o.classList.remove("open"));
-          document.getElementById("ctxMenu").classList.remove("open");
+            .querySelectorAll(".overlay.on")
+            .forEach((o) => o.classList.remove("on"));
+          gi("ctx").classList.remove("on");
         }
         if ((e.ctrlKey || e.metaKey) && e.key === "k") {
           e.preventDefault();
-          document.getElementById("search").focus();
+          gi("search").focus();
         }
       });
     </script>
-
-    <!-- ══ FIREBASE RULES À COPIER DANS LA CONSOLE (commentaire) ══
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Chaque utilisateur accède uniquement à ses données
-    match /users/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-    // Les codes de partage sont lisibles par tous (pour vérification),
-    // mais créables/supprimables seulement par leur propriétaire
-    match /shareCodes/{code} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
-    }
-  }
-}
-══════════════════════════════════════════════════════════ -->
   </body>
 </html>
