@@ -2625,6 +2625,14 @@
               uid,
               username,
             }),
+          // Marque un code d'invitation comme utilisé
+          consumeInvite: (shareCode, suffix, uid, username) =>
+            updateDoc(doc(db, `shareCodes/${shareCode}/invites`, suffix), {
+              used: true,
+              usedAt: serverTimestamp(),
+              uid,
+              username,
+            }),
           // Supprime un code d'invitation (révocation)
           deleteInvite: (shareCode, inviteCode) =>
             deleteDoc(doc(db, `shareCodes/${shareCode}/invites`, inviteCode)),
@@ -3019,28 +3027,41 @@
       }
 
       // Consommer un code d'invitation PRIVÉ à usage unique
+      // Format attendu : shareCode(8) + suffix(4) = 12 chars
       async function redeemInvite() {
         const raw = gi("inAppInviteInput").value.trim().toUpperCase();
         const errEl = gi("inAppCodeErr");
         errEl.textContent = "";
         if (raw.length !== 12) {
           errEl.textContent =
-            "Code d'invitation invalide — 12 caractères requis";
+            "Code invalide — 12 caractères requis (ex: GLSRR2M9TF4K)";
           return;
         }
-        // Format: SHARECODE8_INVITE4  stored as shareCode__inviteCode
-        // We store invites under shareCodes/{shareCode}/invites/{inviteCode}
-        // The user enters a 12-char code = 8 share + 4 invite suffix? No.
-        // Actually: invite code is fully standalone 12 chars stored at top-level collection "invites"
-        // Doc structure: invites/{inviteCode} = { shareCode, used, createdAt, uid, username }
+        const shareCode = raw.slice(0, 8);
+        const suffix = raw.slice(8);
         const btn = gi("inAppCodeBtn");
         btn.disabled = true;
         btn.textContent = "…";
         try {
-          const inv = await window._FB.getInviteGlobal(raw);
-          if (!inv) {
+          // Vérifier que le shareCode existe
+          const sc = await window._FB.getCode(shareCode);
+          if (!sc) {
+            errEl.textContent = "Code invalide ou partage introuvable.";
+            btn.disabled = false;
+            btn.textContent = "Utiliser le code";
+            return;
+          }
+          if (sc.visibility !== "private") {
             errEl.textContent =
-              "Code d'invitation introuvable ou déjà utilisé.";
+              "Ce partage est public — utilisez l'onglet Code public.";
+            btn.disabled = false;
+            btn.textContent = "Utiliser le code";
+            return;
+          }
+          // Récupérer le code d'invitation dans la sous-collection
+          const inv = await window._FB.getInvite(shareCode, suffix);
+          if (!inv) {
+            errEl.textContent = "Code d'invitation introuvable ou invalide.";
             btn.disabled = false;
             btn.textContent = "Utiliser le code";
             return;
@@ -3051,15 +3072,8 @@
             btn.textContent = "Utiliser le code";
             return;
           }
-          const sc = await window._FB.getCode(inv.shareCode);
-          if (!sc) {
-            errEl.textContent = "Le partage associé n'existe plus.";
-            btn.disabled = false;
-            btn.textContent = "Utiliser le code";
-            return;
-          }
-          // Vérifier que l'utilisateur n'a pas déjà accès
-          const existing = await window._FB.checkAccess(inv.shareCode, S.uid);
+          // Vérifier si l'utilisateur a déjà accès
+          const existing = await window._FB.checkAccess(shareCode, S.uid);
           if (existing) {
             if (existing.status === "suspended") {
               errEl.textContent = "Votre accès à ce partage est suspendu.";
@@ -3067,8 +3081,7 @@
               btn.textContent = "Utiliser le code";
               return;
             }
-            // Already has access — just load
-            await loadSharedLib(sc, inv.shareCode, false);
+            await loadSharedLib(sc, shareCode, false);
             closeModal("modalAccessCode");
             gi("inAppInviteInput").value = "";
             toast("Bibliothèque partagée ajoutée ✓", "ok");
@@ -3076,17 +3089,17 @@
             btn.textContent = "Utiliser le code";
             return;
           }
-          // Consommer le code — enregistre uid + username (jamais l'email)
+          // Consommer le code — username uniquement, jamais l'email
           const username = S.username || S.email.split("@")[0];
-          await window._FB.consumeInviteGlobal(raw, S.uid, username);
-          // Ajouter l'accès dans la sous-collection du shareCode
-          await window._FB.addAccess(inv.shareCode, {
+          await window._FB.consumeInvite(shareCode, suffix, S.uid, username);
+          // Enregistrer l'accès dans la sous-collection du shareCode
+          await window._FB.addAccess(shareCode, {
             uid: S.uid,
             username,
             status: "active",
           });
           // Charger la bibliothèque
-          await loadSharedLib(sc, inv.shareCode, false);
+          await loadSharedLib(sc, shareCode, false);
           closeModal("modalAccessCode");
           gi("inAppInviteInput").value = "";
           toast("Accès accordé — bibliothèque ajoutée ✓", "ok");
@@ -3776,8 +3789,10 @@
         if (!confirm("Révoquer ce code ?")) return;
         try {
           await window._FB.revokeCode(code);
-          btn.closest(".share-row").remove();
           toast("Code révoqué", "ok");
+          // Retire la ligne — fonctionne quelle que soit la classe (.sc-row ou .share-row)
+          const row = btn.closest(".sc-row") || btn.closest(".share-row");
+          if (row) row.remove();
         } catch (e) {
           toast("Erreur révocation", "err");
         }
@@ -4099,9 +4114,12 @@
       // Génère un code d'invitation à usage unique (12 chars)
       // Stocké dans la collection globale "invites" pour lookup sans connaître le shareCode
       async function generateInviteCode() {
-        const invCode = mkCode(12);
+        // Format: shareCode(8) + suffix(4) = 12 chars
+        // Stocké dans shareCodes/{shareCode}/invites/{suffix} — utilise les règles existantes
+        const suffix = mkCode(4);
+        const invCode = _currentAccessCode + suffix;
         try {
-          await window._FB.createInviteGlobal(invCode, _currentAccessCode);
+          await window._FB.createInvite(_currentAccessCode, suffix);
           _lastInviteCode = invCode;
           gi("inviteCodeDisplay").textContent = invCode;
           gi("inviteCodeNote").textContent =
