@@ -1469,8 +1469,10 @@
 
         <div id="panelCode" class="auth-panel">
           <p class="auth-hint">
-            Entrez un code à 8 caractères reçu d'un autre utilisateur pour
-            consulter sa bibliothèque en lecture seule.
+            Entrez un <b style="color: var(--text)">code public</b> à 8
+            caractères pour accéder sans compte à une bibliothèque partagée.
+            Pour un accès privé, connectez-vous d'abord puis utilisez le bouton
+            🔑 Code partagé.
           </p>
           <div class="auth-row">
             <div class="auth-field">
@@ -2068,44 +2070,94 @@
 
     <!-- ══ MODAL GESTION ACCÈS PRIVÉ ══ -->
     <div class="overlay" id="modalAccess">
-      <div class="modal" style="width: 520px">
+      <div class="modal" style="width: 540px">
         <div class="modal-t" id="accessModalTitle">Gérer les accès</div>
         <p
           style="font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem"
           id="accessModalCode"
         ></p>
 
-        <!-- Ajouter un utilisateur -->
+        <!-- Générer un code d'invitation à usage unique -->
         <div
           style="
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 12px 14px;
             margin-bottom: 1rem;
           "
         >
-          <div class="field" style="flex: 1; margin-bottom: 0">
-            <label>Inviter par code de partage reçu de l'utilisateur</label>
-            <input
-              type="text"
-              id="newAccessUid"
-              placeholder="UID ou email de l'utilisateur…"
-            />
+          <div
+            style="
+              font-size: 0.68rem;
+              font-weight: 700;
+              color: var(--muted);
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 8px;
+            "
+          >
+            🎟 Générer un code d'invitation
           </div>
-          <div class="field" style="margin-bottom: 0; flex-shrink: 0">
-            <label>Nom</label>
-            <input
-              type="text"
-              id="newAccessName"
-              placeholder="Prénom…"
-              style="width: 110px"
-            />
+          <p
+            style="
+              font-size: 0.75rem;
+              color: var(--muted);
+              line-height: 1.6;
+              margin-bottom: 10px;
+            "
+          >
+            Chaque code est à usage unique. La personne l'entre une seule fois —
+            son nom d'utilisateur s'enregistre automatiquement. Son email reste
+            privé.
+          </p>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <div
+              id="inviteCodeDisplay"
+              style="
+                flex: 1;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 7px;
+                padding: 9px 12px;
+                font-family: monospace;
+                font-size: 0.95rem;
+                letter-spacing: 3px;
+                color: var(--gold);
+                text-align: center;
+                min-height: 38px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              —
+            </div>
+            <button class="btn btn-b btn-sm" onclick="generateInviteCode()">
+              Générer
+            </button>
+            <button
+              class="btn btn-g btn-sm"
+              id="copyInviteBtn"
+              onclick="copyInviteCode()"
+              style="display: none"
+            >
+              📋 Copier
+            </button>
           </div>
-          <button class="btn btn-b btn-sm" onclick="addAccess()">
-            Inviter
-          </button>
+          <div
+            id="inviteCodeNote"
+            style="
+              font-size: 0.68rem;
+              color: var(--muted);
+              margin-top: 6px;
+              text-align: center;
+              min-height: 14px;
+            "
+          ></div>
         </div>
 
+        <!-- Liste utilisateurs autorisés -->
         <div
           style="
             font-size: 0.68rem;
@@ -2124,7 +2176,7 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            max-height: 240px;
+            max-height: 220px;
             overflow-y: auto;
           "
         ></div>
@@ -2177,35 +2229,98 @@
 
     <!-- ══ MODAL ACCÈS CODE PARTAGÉ ══ -->
     <div class="overlay" id="modalAccessCode">
-      <div class="modal" style="width: 380px">
+      <div class="modal" style="width: 420px">
         <div class="modal-t">Accéder à une bibliothèque partagée</div>
-        <p
+
+        <!-- Onglets public / privé -->
+        <div
           style="
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            line-height: 1.65;
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
           "
         >
-          Entrez un code à 8 caractères reçu d'un autre utilisateur. Vous
-          accéderez à sa bibliothèque en lecture seule dans un nouvel onglet.
-        </p>
-        <div class="field" style="margin-bottom: 14px">
-          <label>Code de partage</label>
-          <input
-            type="text"
-            id="inAppCodeInput"
-            placeholder="AB12CD34"
-            maxlength="8"
-            style="
-              text-transform: uppercase;
-              letter-spacing: 4px;
-              text-align: center;
-              font-size: 1.1rem;
-            "
-            onkeydown="if (event.key === 'Enter') openSharedLib();"
-          />
+          <button
+            class="share-tab active"
+            id="acTabPublic"
+            onclick="switchAccessTab('public')"
+          >
+            🌐 Code public
+          </button>
+          <button
+            class="share-tab"
+            id="acTabPrivate"
+            onclick="switchAccessTab('private')"
+          >
+            🔒 Code privé
+          </button>
         </div>
+
+        <!-- Panneau public -->
+        <div id="acPanelPublic">
+          <p
+            style="
+              font-size: 0.78rem;
+              color: var(--muted);
+              margin-bottom: 1rem;
+              line-height: 1.6;
+            "
+          >
+            Entrez le code à 8 caractères partagé publiquement. Accessible sans
+            restriction.
+          </p>
+          <div class="field" style="margin-bottom: 10px">
+            <label>Code de partage public (8 caractères)</label>
+            <input
+              type="text"
+              id="inAppCodeInput"
+              placeholder="AB12CD34"
+              maxlength="8"
+              style="
+                text-transform: uppercase;
+                letter-spacing: 4px;
+                text-align: center;
+                font-size: 1.1rem;
+              "
+              onkeydown="if (event.key === 'Enter') addSharedLibFromApp();"
+            />
+          </div>
+        </div>
+
+        <!-- Panneau privé -->
+        <div id="acPanelPrivate" style="display: none">
+          <p
+            style="
+              font-size: 0.78rem;
+              color: var(--muted);
+              margin-bottom: 1rem;
+              line-height: 1.6;
+            "
+          >
+            Entrez le code d'invitation personnel (12 caractères) que vous avez
+            reçu. Il est à usage unique — votre nom d'utilisateur sera
+            enregistré à la place de votre email.
+          </p>
+          <div class="field" style="margin-bottom: 10px">
+            <label>Code d'invitation personnel (12 caractères)</label>
+            <input
+              type="text"
+              id="inAppInviteInput"
+              placeholder="AB12CD34EF56"
+              maxlength="12"
+              style="
+                text-transform: uppercase;
+                letter-spacing: 3px;
+                text-align: center;
+                font-size: 1rem;
+              "
+              onkeydown="if (event.key === 'Enter') redeemInvite();"
+            />
+          </div>
+        </div>
+
         <div
           id="inAppCodeErr"
           style="
@@ -2222,7 +2337,7 @@
           <button
             class="btn btn-b"
             id="inAppCodeBtn"
-            onclick="addSharedLibFromApp()"
+            onclick="inAppCodeAction()"
           >
             Accéder
           </button>
@@ -2451,6 +2566,7 @@
           },
 
           // ── ACCÈS PRIVÉS (sous-collection de chaque code) ──
+          // Enregistre un accès après qu'un invité a consommé son code d'invitation
           addAccess: (code, d) =>
             addDoc(collection(db, `shareCodes/${code}/access`), {
               ...d,
@@ -2467,7 +2583,7 @@
             updateDoc(doc(db, `shareCodes/${code}/access`, id), d),
           deleteAccess: (code, id) =>
             deleteDoc(doc(db, `shareCodes/${code}/access`, id)),
-          // Vérifier si un utilisateur a accès à un code privé
+          // Vérifier si un utilisateur (uid) a accès à un code privé
           checkAccess: async (code, uid) => {
             const s = await getDocs(
               query(
@@ -2479,6 +2595,61 @@
             const d = s.docs[0];
             return { id: d.id, ...d.data() };
           },
+
+          // ── CODES D'INVITATION À USAGE UNIQUE ──
+          // Crée un code d'invitation dans shareCodes/{shareCode}/invites/{inviteCode}
+          createInvite: (shareCode, inviteCode) =>
+            setDoc(doc(db, `shareCodes/${shareCode}/invites`, inviteCode), {
+              createdAt: serverTimestamp(),
+              used: false,
+            }),
+          // Récupère un code d'invitation
+          getInvite: async (shareCode, inviteCode) => {
+            const d = await getDoc(
+              doc(db, `shareCodes/${shareCode}/invites`, inviteCode),
+            );
+            return d.exists() ? { id: d.id, ...d.data() } : null;
+          },
+          // Liste tous les invites d'un shareCode (pour affichage admin)
+          getInvites: async (shareCode) => {
+            const s = await getDocs(
+              collection(db, `shareCodes/${shareCode}/invites`),
+            );
+            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+          // Marque un code d'invitation comme utilisé + stocke le uid/username
+          consumeInvite: (shareCode, inviteCode, uid, username) =>
+            updateDoc(doc(db, `shareCodes/${shareCode}/invites`, inviteCode), {
+              used: true,
+              usedAt: serverTimestamp(),
+              uid,
+              username,
+            }),
+          // Supprime un code d'invitation (révocation)
+          deleteInvite: (shareCode, inviteCode) =>
+            deleteDoc(doc(db, `shareCodes/${shareCode}/invites`, inviteCode)),
+
+          // ── CODES D'INVITATION GLOBAUX (collection racine "invites") ──
+          // Permet de retrouver un code d'invitation sans connaître le shareCode
+          createInviteGlobal: (inviteCode, shareCode) =>
+            setDoc(doc(db, "invites", inviteCode), {
+              shareCode,
+              used: false,
+              createdAt: serverTimestamp(),
+            }),
+          getInviteGlobal: async (inviteCode) => {
+            const d = await getDoc(doc(db, "invites", inviteCode));
+            return d.exists() ? { id: d.id, ...d.data() } : null;
+          },
+          consumeInviteGlobal: (inviteCode, uid, username) =>
+            updateDoc(doc(db, "invites", inviteCode), {
+              used: true,
+              usedAt: serverTimestamp(),
+              uid,
+              username,
+            }),
+          deleteInviteGlobal: (inviteCode) =>
+            deleteDoc(doc(db, "invites", inviteCode)),
 
           // ── SUPPRESSION DE COMPTE ──
           deleteAccount: async (uid) => {
@@ -2636,6 +2807,7 @@
       }
 
       async function accessCode() {
+        // Auth screen: public codes only (no account needed)
         const code = gi("shareInput").value.trim().toUpperCase();
         if (code.length !== 8) {
           authErr("Code invalide — 8 caractères requis");
@@ -2647,10 +2819,9 @@
             authErr("Code introuvable ou révoqué.");
             return;
           }
-          // Vérifier si le partage est public
           if (sc.visibility === "private") {
             authErr(
-              "Ce partage est privé. Connectez-vous avec votre compte pour y accéder.",
+              "Ce code est privé. Connectez-vous puis utilisez le bouton 🔑 Code partagé.",
             );
             return;
           }
@@ -2658,7 +2829,6 @@
           S.email = null;
           S.readOnly = true;
           showApp();
-          // Charger la bibliothèque partagée en mode "sole" (vue principale)
           await loadSharedLib(sc, code, true);
           toast("Bibliothèque partagée chargée en lecture seule", "info");
         } catch (e) {
@@ -2793,7 +2963,26 @@
         gridSpin(false);
       }
 
-      // Ajouter une bibliothèque partagée depuis l'app (modal)
+      // ── ONGLETS DU MODAL ACCÈS CODE ────────────────────────────
+      let _accessTabMode = "public";
+      function switchAccessTab(tab) {
+        _accessTabMode = tab;
+        gi("acTabPublic").classList.toggle("active", tab === "public");
+        gi("acTabPrivate").classList.toggle("active", tab === "private");
+        gi("acPanelPublic").style.display = tab === "public" ? "block" : "none";
+        gi("acPanelPrivate").style.display =
+          tab === "private" ? "block" : "none";
+        gi("inAppCodeErr").textContent = "";
+        gi("inAppCodeBtn").textContent =
+          tab === "private" ? "Utiliser le code" : "Accéder";
+      }
+
+      function inAppCodeAction() {
+        if (_accessTabMode === "private") redeemInvite();
+        else addSharedLibFromApp();
+      }
+
+      // Ajouter une bibliothèque partagée (code PUBLIC) depuis l'app
       async function addSharedLibFromApp() {
         const code = gi("inAppCodeInput").value.trim().toUpperCase();
         const errEl = gi("inAppCodeErr");
@@ -2811,18 +3000,12 @@
             errEl.textContent = "Code introuvable ou révoqué.";
             return;
           }
-          // Si privé, vérifier que l'utilisateur connecté est dans la liste d'accès
           if (sc.visibility === "private") {
-            const access = await window._FB.checkAccess(code, S.uid);
-            if (!access) {
-              errEl.textContent =
-                "Accès refusé — vous n'êtes pas dans la liste autorisée.";
-              return;
-            }
-            if (access.status === "suspended") {
-              errEl.textContent = "Votre accès à ce partage est suspendu.";
-              return;
-            }
+            errEl.textContent =
+              "Ce code est privé — utilisez l'onglet \"Code privé\" et entrez votre code d'invitation personnel.";
+            btn.disabled = false;
+            btn.textContent = "Accéder";
+            return;
           }
           await loadSharedLib(sc, code, false);
           closeModal("modalAccessCode");
@@ -2833,6 +3016,85 @@
         }
         btn.disabled = false;
         btn.textContent = "Accéder";
+      }
+
+      // Consommer un code d'invitation PRIVÉ à usage unique
+      async function redeemInvite() {
+        const raw = gi("inAppInviteInput").value.trim().toUpperCase();
+        const errEl = gi("inAppCodeErr");
+        errEl.textContent = "";
+        if (raw.length !== 12) {
+          errEl.textContent =
+            "Code d'invitation invalide — 12 caractères requis";
+          return;
+        }
+        // Format: SHARECODE8_INVITE4  stored as shareCode__inviteCode
+        // We store invites under shareCodes/{shareCode}/invites/{inviteCode}
+        // The user enters a 12-char code = 8 share + 4 invite suffix? No.
+        // Actually: invite code is fully standalone 12 chars stored at top-level collection "invites"
+        // Doc structure: invites/{inviteCode} = { shareCode, used, createdAt, uid, username }
+        const btn = gi("inAppCodeBtn");
+        btn.disabled = true;
+        btn.textContent = "…";
+        try {
+          const inv = await window._FB.getInviteGlobal(raw);
+          if (!inv) {
+            errEl.textContent =
+              "Code d'invitation introuvable ou déjà utilisé.";
+            btn.disabled = false;
+            btn.textContent = "Utiliser le code";
+            return;
+          }
+          if (inv.used) {
+            errEl.textContent = "Ce code d'invitation a déjà été utilisé.";
+            btn.disabled = false;
+            btn.textContent = "Utiliser le code";
+            return;
+          }
+          const sc = await window._FB.getCode(inv.shareCode);
+          if (!sc) {
+            errEl.textContent = "Le partage associé n'existe plus.";
+            btn.disabled = false;
+            btn.textContent = "Utiliser le code";
+            return;
+          }
+          // Vérifier que l'utilisateur n'a pas déjà accès
+          const existing = await window._FB.checkAccess(inv.shareCode, S.uid);
+          if (existing) {
+            if (existing.status === "suspended") {
+              errEl.textContent = "Votre accès à ce partage est suspendu.";
+              btn.disabled = false;
+              btn.textContent = "Utiliser le code";
+              return;
+            }
+            // Already has access — just load
+            await loadSharedLib(sc, inv.shareCode, false);
+            closeModal("modalAccessCode");
+            gi("inAppInviteInput").value = "";
+            toast("Bibliothèque partagée ajoutée ✓", "ok");
+            btn.disabled = false;
+            btn.textContent = "Utiliser le code";
+            return;
+          }
+          // Consommer le code — enregistre uid + username (jamais l'email)
+          const username = S.username || S.email.split("@")[0];
+          await window._FB.consumeInviteGlobal(raw, S.uid, username);
+          // Ajouter l'accès dans la sous-collection du shareCode
+          await window._FB.addAccess(inv.shareCode, {
+            uid: S.uid,
+            username,
+            status: "active",
+          });
+          // Charger la bibliothèque
+          await loadSharedLib(sc, inv.shareCode, false);
+          closeModal("modalAccessCode");
+          gi("inAppInviteInput").value = "";
+          toast("Accès accordé — bibliothèque ajoutée ✓", "ok");
+        } catch (e) {
+          errEl.textContent = "Erreur : " + e.message;
+        }
+        btn.disabled = false;
+        btn.textContent = "Utiliser le code";
       }
 
       function removeSharedLib(idx) {
@@ -3788,7 +4050,15 @@
               const susp = accesses.filter(
                 (a) => a.status === "suspended",
               ).length;
-              accessHtml = `<div class="sc-row-sub">${active} actif(s)${susp ? " · " + susp + " suspendu(s)" : ""} — <a href="#" onclick="openAccessModal('${sc.id}','${esc(sc.note || sc.id)}');return false;" style="color:var(--blue);">Gérer les accès</a></div>`;
+              // Count pending (unused) invites
+              let pendingHtml = "";
+              try {
+                const invites = await window._FB.getInvites(sc.id);
+                const pending = invites.filter((inv) => !inv.used).length;
+                if (pending > 0)
+                  pendingHtml = ` · <span style="color:var(--gold);">${pending} invitation(s) en attente</span>`;
+              } catch (e) {}
+              accessHtml = `<div class="sc-row-sub">👤 ${active} actif(s)${susp ? " · " + susp + " suspendu(s)" : ""}${pendingHtml} — <a href="#" onclick="openAccessModal('${sc.id}','${esc(sc.note || sc.id)}');return false;" style="color:var(--blue);">Gérer les accès</a></div>`;
             }
             row.innerHTML = `
         <div class="sc-row-top">
@@ -3812,15 +4082,42 @@
 
       // ── GESTION ACCÈS PRIVÉS ─────────────────────────────────────
       let _currentAccessCode = null;
+      let _lastInviteCode = null;
 
       async function openAccessModal(code, name) {
         _currentAccessCode = code;
+        _lastInviteCode = null;
         gi("accessModalTitle").textContent = "Accès — " + name;
-        gi("accessModalCode").textContent = "Code : " + code;
-        gi("newAccessUid").value = "";
-        gi("newAccessName").value = "";
+        gi("accessModalCode").textContent = "Code de partage : " + code;
+        gi("inviteCodeDisplay").textContent = "—";
+        gi("inviteCodeNote").textContent = "";
+        gi("copyInviteBtn").style.display = "none";
         openModal("modalAccess");
         await refreshAccessList();
+      }
+
+      // Génère un code d'invitation à usage unique (12 chars)
+      // Stocké dans la collection globale "invites" pour lookup sans connaître le shareCode
+      async function generateInviteCode() {
+        const invCode = mkCode(12);
+        try {
+          await window._FB.createInviteGlobal(invCode, _currentAccessCode);
+          _lastInviteCode = invCode;
+          gi("inviteCodeDisplay").textContent = invCode;
+          gi("inviteCodeNote").textContent =
+            "✓ Code généré — envoyez-le à votre invité. Valable une seule fois.";
+          gi("copyInviteBtn").style.display = "inline-flex";
+          toast("Code d'invitation généré ✓", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
+      }
+
+      function copyInviteCode() {
+        if (!_lastInviteCode) return;
+        navigator.clipboard
+          .writeText(_lastInviteCode)
+          .then(() => toast("Code copié !", "info"));
       }
 
       async function refreshAccessList() {
@@ -3832,15 +4129,16 @@
           list.innerHTML = "";
           if (!accesses.length) {
             list.innerHTML =
-              '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun utilisateur invité</div>';
+              '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun utilisateur autorisé</div>';
             return;
           }
           accesses.forEach((a) => {
             const active = a.status === "active";
             const row = document.createElement("div");
             row.className = "ac-row";
+            // Affiche username uniquement — jamais l'email
             row.innerHTML = `
-        <span class="ac-name">${esc(a.name || a.uid || "Utilisateur")}<br><span style="font-size:.68rem;color:var(--muted);">${esc(a.uid || "")}</span></span>
+        <span class="ac-name">👤 ${esc(a.username || "Utilisateur")}</span>
         <span class="ac-status ${active ? "ac-active" : "ac-suspended"}">${active ? "✓ Actif" : "⏸ Suspendu"}</span>
         <button class="btn btn-g btn-sm" onclick="toggleAccess('${a.id}','${a.status}')">${active ? "Suspendre" : "Réactiver"}</button>
         <button class="btn btn-sm" style="background:rgba(230,57,70,.12);color:var(--accent);border:1px solid rgba(230,57,70,.25);" onclick="removeAccess('${a.id}')">Révoquer</button>
@@ -3849,27 +4147,6 @@
           });
         } catch (e) {
           list.innerHTML = `<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur</div>`;
-        }
-      }
-
-      async function addAccess() {
-        const uid = gi("newAccessUid").value.trim();
-        const name = gi("newAccessName").value.trim();
-        if (!uid) {
-          toast("UID requis", "err");
-          return;
-        }
-        try {
-          await window._FB.addAccess(_currentAccessCode, {
-            uid,
-            name: name || uid,
-          });
-          gi("newAccessUid").value = "";
-          gi("newAccessName").value = "";
-          await refreshAccessList();
-          toast("Utilisateur invité ✓", "ok");
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
         }
       }
 
