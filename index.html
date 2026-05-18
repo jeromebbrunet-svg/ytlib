@@ -350,9 +350,6 @@
         background: var(--border);
         color: var(--text);
       }
-      .tree-children {
-        padding-left: 12px;
-      }
 
       /* ── MAIN ── */
       .main-content {
@@ -1365,6 +1362,7 @@
         transform: rotate(90deg);
       }
       .tree-children {
+        padding-left: 16px;
         overflow: hidden;
       }
       .tree-children.collapsed {
@@ -3525,7 +3523,7 @@
         ${vid.category ? `<span class="cpill2">${esc(vid.category)}</span>` : ""}
       </div>
       <div class="card-body">
-        <div class="card-title" title="${esc(vid.title)}">${esc(vid.title)}</div>
+        <div class="card-title" title="${esc(vid.title)}">${esc(vid.title) || '<span style="color:var(--muted);font-style:italic;font-size:.78rem;">Sans titre</span>'}</div>
         <div class="card-foot">
           <span class="card-date">${dateLabel}</span>
           ${
