@@ -1362,7 +1362,7 @@
         transform: rotate(90deg);
       }
       .tree-children {
-        padding-left: 16px;
+        padding-left: 22px;
         overflow: hidden;
       }
       .tree-children.collapsed {
@@ -3313,9 +3313,14 @@
         const chevron = hasChildren
           ? `<span class="ti-chevron ${S.collapsed.has(colKey) ? "" : "open"}" onclick="toggleCollapse(event,'${colKey}','${containerId}')">›</span>`
           : "";
+        const folderIcon = !fid
+          ? `<span style="font-size:.9rem;flex-shrink:0;">📁</span>`
+          : hasChildren
+          ? `<svg style="width:15px;height:15px;flex-shrink:0;" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 3C1 2.44772 1.44772 2 2 2H7.58579C7.851 2 8.10536 2.10536 8.29289 2.29289L9.70711 3.70711C9.89464 3.89464 10.149 4 10.4142 4H18C18.5523 4 19 4.44772 19 5V13C19 13.5523 18.5523 14 18 14H2C1.44772 14 1 13.5523 1 13V3Z" fill="#4ade80" opacity="0.9"/><path d="M1 6H19V13C19 13.5523 18.5523 14 18 14H2C1.44772 14 1 13.5523 1 13V6Z" fill="#22c55e"/></svg>`
+          : `<span style="font-size:.9rem;flex-shrink:0;">📂</span>`;
         el.innerHTML = `
     ${chevron}
-    <span style="font-size:.9rem;flex-shrink:0;">${fid ? "📂" : "📁"}</span>
+    ${folderIcon}
     <span class="ti-label">${esc(label)}</span>
     <span class="ti-count">${cnt}</span>
     ${fid && !isShared ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ""}
