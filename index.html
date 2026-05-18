@@ -712,114 +712,6 @@
         overflow-y: auto;
         margin-top: 8px;
       }
-      .share-tab {
-        flex: 1;
-        padding: 7px 4px;
-        background: transparent;
-        border: none;
-        color: var(--muted);
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.78rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .share-tab.active {
-        background: var(--accent);
-        color: #fff;
-      }
-      /* Ligne de partage étendue */
-      .sc-row {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 9px 12px;
-        margin-bottom: 6px;
-      }
-      .sc-row-top {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .sc-badge {
-        font-size: 0.6rem;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        padding: 2px 7px;
-        border-radius: 3px;
-        flex-shrink: 0;
-      }
-      .sc-pub {
-        background: rgba(74, 222, 128, 0.15);
-        color: var(--green);
-        border: 1px solid rgba(74, 222, 128, 0.25);
-      }
-      .sc-priv {
-        background: rgba(72, 149, 239, 0.15);
-        color: var(--blue);
-        border: 1px solid rgba(72, 149, 239, 0.25);
-      }
-      .sc-name {
-        font-size: 0.82rem;
-        font-weight: 500;
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .sc-code {
-        font-family: monospace;
-        font-size: 0.75rem;
-        color: var(--gold);
-        letter-spacing: 2px;
-        cursor: pointer;
-      }
-      .sc-code:hover {
-        text-decoration: underline;
-      }
-      .sc-actions {
-        display: flex;
-        gap: 5px;
-        flex-shrink: 0;
-      }
-      .sc-row-sub {
-        margin-top: 6px;
-        font-size: 0.72rem;
-        color: var(--muted);
-      }
-      /* Ligne d'accès utilisateur */
-      .ac-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 7px;
-      }
-      .ac-name {
-        flex: 1;
-        font-size: 0.82rem;
-      }
-      .ac-status {
-        font-size: 0.65rem;
-        font-weight: 600;
-        padding: 2px 7px;
-        border-radius: 3px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .ac-active {
-        background: rgba(74, 222, 128, 0.15);
-        color: var(--green);
-        border: 1px solid rgba(74, 222, 128, 0.25);
-      }
-      .ac-suspended {
-        background: rgba(244, 162, 97, 0.15);
-        color: var(--gold);
-        border: 1px solid rgba(244, 162, 97, 0.25);
-      }
       .share-row {
         display: flex;
         align-items: center;
@@ -1531,19 +1423,6 @@
             <div class="dot" id="statusDot"></div>
             <span class="user-email" id="userEmail">—</span>
           </div>
-          <!-- Bouton profil -->
-          <button
-            class="btn-ic"
-            id="btnProfile"
-            onclick="openProfileModal()"
-            title="Mon compte"
-          >
-            <svg viewBox="0 0 16 16">
-              <path
-                d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"
-              />
-            </svg>
-          </button>
           <!-- Bouton code partagé — toujours visible quand connecté -->
           <button
             class="btn btn-g btn-sm"
@@ -1805,328 +1684,69 @@
 
     <!-- ══ MODAL PARTAGE ══ -->
     <div class="overlay" id="modalShare">
-      <div class="modal" style="width: 560px">
-        <div class="modal-t">Partage &amp; Permissions</div>
-
-        <!-- Onglets du modal -->
-        <div
+      <div class="modal" style="width: 520px">
+        <div class="modal-t">Partage &amp; Codes</div>
+        <p
           style="
-            display: flex;
-            gap: 0;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 1.2rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.65;
           "
         >
-          <button
-            class="share-tab active"
-            onclick="switchShareTab('create')"
-            id="stCreate"
-          >
-            Nouveau partage
-          </button>
-          <button
-            class="share-tab"
-            onclick="switchShareTab('list')"
-            id="stList"
-          >
-            Mes partages
-          </button>
+          Générez un code à 8 caractères pour partager votre bibliothèque (ou un
+          dossier) en lecture seule. La personne n'a pas besoin de compte.
+          Révoquez le code à tout moment.
+        </p>
+        <div class="mg mg2">
+          <div class="field">
+            <label>Portée</label>
+            <select id="shareScope" onchange="toggleShareFolder()">
+              <option value="all">Toute la bibliothèque</option>
+              <option value="folder">Un dossier précis</option>
+            </select>
+          </div>
+          <div class="field" id="shareFolderWrap" style="display: none">
+            <label>Dossier</label>
+            <select id="shareFolder"></select>
+          </div>
         </div>
-
-        <!-- ── Onglet : Créer un partage ── -->
-        <div id="shareTabCreate">
-          <div class="mg mg2">
-            <div class="field">
-              <label>Portée</label>
-              <select id="shareScope" onchange="toggleShareFolder()">
-                <option value="all">Toute la bibliothèque</option>
-                <option value="folder">Un dossier précis</option>
-              </select>
-            </div>
-            <div class="field" id="shareFolderWrap" style="display: none">
-              <label>Dossier</label>
-              <select id="shareFolder"></select>
-            </div>
+        <div class="mg">
+          <div class="field">
+            <label>Note (optionnel)</label>
+            <input type="text" id="shareNote" placeholder="Ex : pour Marie" />
           </div>
-          <div class="mg mg2">
-            <div class="field">
-              <label>Visibilité</label>
-              <select id="shareVisibility" onchange="toggleShareVisibility()">
-                <option value="public">Public — sans compte requis</option>
-                <option value="private">
-                  Privé — liste blanche d'utilisateurs
-                </option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Nom du partage</label>
-              <input
-                type="text"
-                id="shareNote"
-                placeholder="Ex : Cours de violon"
-              />
-            </div>
-          </div>
+        </div>
+        <button class="btn btn-p" onclick="generateCode()">
+          Générer un code
+        </button>
+        <div id="newCodeWrap" style="display: none">
           <div
-            id="sharePublicInfo"
+            class="code-box"
+            id="newCodeDisplay"
+            onclick="copyCode(this.textContent.trim())"
+          ></div>
+          <p style="font-size: 0.7rem; color: var(--muted); text-align: center">
+            Cliquez pour copier · Code à usage unique
+          </p>
+        </div>
+        <div style="margin-top: 1.2rem">
+          <div
             style="
-              font-size: 0.76rem;
+              font-size: 0.68rem;
+              font-weight: 600;
               color: var(--muted);
-              margin-bottom: 10px;
-              padding: 8px 10px;
-              background: var(--card);
-              border-radius: 7px;
-              border: 1px solid var(--border);
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 8px;
             "
           >
-            🌐 <b style="color: var(--text)">Public</b> — Toute personne
-            disposant du code peut accéder sans créer de compte.
+            Codes actifs
           </div>
-          <div
-            id="sharePrivateInfo"
-            style="
-              display: none;
-              font-size: 0.76rem;
-              color: var(--muted);
-              margin-bottom: 10px;
-              padding: 8px 10px;
-              background: var(--card);
-              border-radius: 7px;
-              border: 1px solid rgba(72, 149, 239, 0.3);
-            "
-          >
-            🔒 <b style="color: var(--blue)">Privé</b> — Seuls les utilisateurs
-            que vous invitez peuvent accéder. Vous gérez les permissions
-            individuellement.
-          </div>
-          <button class="btn btn-p" onclick="generateCode()">
-            Générer le code de partage
-          </button>
-          <div id="newCodeWrap" style="display: none; margin-top: 10px">
-            <div
-              class="code-box"
-              id="newCodeDisplay"
-              onclick="copyCode(this.textContent.trim())"
-            ></div>
-            <p
-              style="font-size: 0.7rem; color: var(--muted); text-align: center"
-            >
-              Cliquez pour copier
-            </p>
-          </div>
+          <div class="share-list" id="shareList"></div>
         </div>
-
-        <!-- ── Onglet : Liste des partages ── -->
-        <div id="shareTabList" style="display: none">
-          <div class="share-list" id="shareList" style="max-height: 360px">
-            <div style="font-size: 0.75rem; color: var(--muted); padding: 8px">
-              Chargement…
-            </div>
-          </div>
-        </div>
-
         <div class="ma" style="margin-top: 1rem">
           <button class="btn btn-g" onclick="closeModal('modalShare')">
-            Fermer
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ MODAL PROFIL & COMPTE ══ -->
-    <div class="overlay" id="modalProfile">
-      <div class="modal" style="width: 420px">
-        <div class="modal-t">Mon compte</div>
-
-        <div
-          style="
-            display: flex;
-            gap: 0;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 1.2rem;
-          "
-        >
-          <button
-            class="share-tab active"
-            onclick="switchProfileTab('info')"
-            id="ptInfo"
-          >
-            Informations
-          </button>
-          <button
-            class="share-tab"
-            onclick="switchProfileTab('security')"
-            id="ptSecurity"
-          >
-            Sécurité
-          </button>
-        </div>
-
-        <!-- Onglet Informations -->
-        <div id="profileTabInfo">
-          <div class="mg">
-            <div class="field">
-              <label>Nom d'utilisateur affiché</label>
-              <input
-                type="text"
-                id="profUsername"
-                placeholder="Ex : Jean-Pierre"
-                maxlength="32"
-              />
-              <div
-                style="font-size: 0.68rem; color: var(--muted); margin-top: 4px"
-              >
-                Affiché à la place de votre email dans l'application.
-              </div>
-            </div>
-            <div class="field">
-              <label>Email (lecture seule)</label>
-              <input
-                type="email"
-                id="profEmail"
-                disabled
-                style="opacity: 0.5; cursor: not-allowed"
-              />
-            </div>
-          </div>
-          <div class="ma">
-            <button class="btn btn-g" onclick="closeModal('modalProfile')">
-              Annuler
-            </button>
-            <button class="btn btn-p" onclick="saveProfile()">
-              Enregistrer
-            </button>
-          </div>
-        </div>
-
-        <!-- Onglet Sécurité -->
-        <div id="profileTabSecurity" style="display: none">
-          <div
-            style="
-              background: rgba(230, 57, 70, 0.08);
-              border: 1px solid rgba(230, 57, 70, 0.25);
-              border-radius: 8px;
-              padding: 12px 14px;
-              margin-bottom: 1rem;
-            "
-          >
-            <div
-              style="
-                font-size: 0.82rem;
-                font-weight: 600;
-                color: var(--accent);
-                margin-bottom: 6px;
-              "
-            >
-              ⚠️ Zone dangereuse
-            </div>
-            <div
-              style="font-size: 0.78rem; color: var(--muted); line-height: 1.6"
-            >
-              La suppression de compte est
-              <b style="color: var(--text)">irréversible</b>. Toutes vos vidéos,
-              dossiers et codes de partage seront définitivement supprimés.
-            </div>
-          </div>
-          <div class="field" style="margin-bottom: 12px">
-            <label>Confirmez en tapant votre email</label>
-            <input
-              type="email"
-              id="deleteConfirmEmail"
-              placeholder="votre@email.com"
-            />
-          </div>
-          <button
-            class="btn"
-            style="
-              background: rgba(230, 57, 70, 0.15);
-              color: var(--accent);
-              border: 1px solid rgba(230, 57, 70, 0.3);
-              width: 100%;
-              justify-content: center;
-            "
-            onclick="deleteAccount()"
-          >
-            Supprimer définitivement mon compte
-          </button>
-          <div class="ma" style="margin-top: 10px">
-            <button class="btn btn-g" onclick="closeModal('modalProfile')">
-              Annuler
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ MODAL GESTION ACCÈS PRIVÉ ══ -->
-    <div class="overlay" id="modalAccess">
-      <div class="modal" style="width: 520px">
-        <div class="modal-t" id="accessModalTitle">Gérer les accès</div>
-        <p
-          style="font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem"
-          id="accessModalCode"
-        ></p>
-
-        <!-- Ajouter un utilisateur -->
-        <div
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-            margin-bottom: 1rem;
-          "
-        >
-          <div class="field" style="flex: 1; margin-bottom: 0">
-            <label>Inviter par code de partage reçu de l'utilisateur</label>
-            <input
-              type="text"
-              id="newAccessUid"
-              placeholder="UID ou email de l'utilisateur…"
-            />
-          </div>
-          <div class="field" style="margin-bottom: 0; flex-shrink: 0">
-            <label>Nom</label>
-            <input
-              type="text"
-              id="newAccessName"
-              placeholder="Prénom…"
-              style="width: 110px"
-            />
-          </div>
-          <button class="btn btn-b btn-sm" onclick="addAccess()">
-            Inviter
-          </button>
-        </div>
-
-        <div
-          style="
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-          "
-        >
-          Utilisateurs autorisés
-        </div>
-        <div
-          id="accessList"
-          style="
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 240px;
-            overflow-y: auto;
-          "
-        ></div>
-
-        <div class="ma" style="margin-top: 1rem">
-          <button class="btn btn-g" onclick="closeModal('modalAccess')">
             Fermer
           </button>
         </div>
@@ -2388,8 +2008,6 @@
           login: (e, p) => signInWithEmailAndPassword(auth, e, p),
           register: (e, p) => createUserWithEmailAndPassword(auth, e, p),
           logout: () => signOut(auth),
-          deleteAuthUser: () =>
-            auth.currentUser ? auth.currentUser.delete() : Promise.resolve(),
 
           addFolder: (uid, d) =>
             addDoc(collection(db, `users/${uid}/folders`), {
@@ -2419,15 +2037,6 @@
             return s.docs.map((d) => ({ id: d.id, ...d.data() }));
           },
 
-          // ── PROFIL ──
-          getProfile: async (uid) => {
-            const d = await getDoc(doc(db, "profiles", uid));
-            return d.exists() ? d.data() : null;
-          },
-          setProfile: (uid, d) =>
-            setDoc(doc(db, "profiles", uid), d, { merge: true }),
-
-          // ── CODES DE PARTAGE ──
           createCode: (code, d) =>
             setDoc(doc(db, "shareCodes", code), {
               ...d,
@@ -2437,59 +2046,12 @@
             const d = await getDoc(doc(db, "shareCodes", code));
             return d.exists() ? { id: d.id, ...d.data() } : null;
           },
-          updateCode: (code, d) => updateDoc(doc(db, "shareCodes", code), d),
           revokeCode: (code) => deleteDoc(doc(db, "shareCodes", code)),
           getMyCodes: async (uid) => {
             const s = await getDocs(
               query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
             );
             return s.docs.map((d) => ({ id: d.id, ...d.data() }));
-          },
-
-          // ── ACCÈS PRIVÉS (sous-collection de chaque code) ──
-          addAccess: (code, d) =>
-            addDoc(collection(db, `shareCodes/${code}/access`), {
-              ...d,
-              grantedAt: serverTimestamp(),
-              status: "active",
-            }),
-          getAccesses: async (code) => {
-            const s = await getDocs(
-              collection(db, `shareCodes/${code}/access`),
-            );
-            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
-          },
-          updateAccess: (code, id, d) =>
-            updateDoc(doc(db, `shareCodes/${code}/access`, id), d),
-          deleteAccess: (code, id) =>
-            deleteDoc(doc(db, `shareCodes/${code}/access`, id)),
-          // Vérifier si un utilisateur a accès à un code privé
-          checkAccess: async (code, uid) => {
-            const s = await getDocs(
-              query(
-                collection(db, `shareCodes/${code}/access`),
-                where("uid", "==", uid),
-              ),
-            );
-            if (s.empty) return null;
-            const d = s.docs[0];
-            return { id: d.id, ...d.data() };
-          },
-
-          // ── SUPPRESSION DE COMPTE ──
-          deleteAccount: async (uid) => {
-            // Supprimer données Firestore (Firebase Auth user supprimé côté client)
-            const batch = [];
-            const vSnap = await getDocs(collection(db, `users/${uid}/videos`));
-            vSnap.docs.forEach((d) => batch.push(deleteDoc(d.ref)));
-            const fSnap = await getDocs(collection(db, `users/${uid}/folders`));
-            fSnap.docs.forEach((d) => batch.push(deleteDoc(d.ref)));
-            const cSnap = await getDocs(
-              query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
-            );
-            cSnap.docs.forEach((d) => batch.push(deleteDoc(d.ref)));
-            await Promise.all(batch);
-            await deleteDoc(doc(db, "profiles", uid));
           },
         };
 
@@ -2499,11 +2061,6 @@
             S.uid = user.uid;
             S.email = user.email;
             S.readOnly = false;
-            // Charger le profil (username)
-            window._FB.getProfile(user.uid).then((p) => {
-              S.username = p?.username || null;
-              updateUserDisplay();
-            });
             showApp();
             loadAll();
           } else if (!S.readOnly) {
@@ -2520,117 +2077,191 @@
     <script>
       // ── STATE ────────────────────────────────────────────────
       const S = {
-        uid:null, email:null, username:null,
-        readOnly: false,
-        videos:[], folders:[],
-        sharedLibs:[],
-        curLib:null, curFolder:null,
-        editVid:null, moveVid:null, ctxVid:null,
+        uid: null,
+        email: null,
+        readOnly: false, // true = connecté via code seulement (sans compte)
+        // Ma bibliothèque
+        videos: [],
+        folders: [],
+        // Bibliothèques partagées : [{code, label, ownerUid, videos, folders, scope, folderId}]
+        sharedLibs: [],
+        // Navigation
+        curLib: null, // null = ma bibliothèque, sinon index dans sharedLibs
+        curFolder: null,
+        editVid: null,
+        moveVid: null,
+        ctxVid: null,
         collapsed: new Set(),
       };
 
       // Renvoie les vidéos + dossiers actifs selon curLib
-      function activeVideos()  { return S.curLib === null ? S.videos  : (S.sharedLibs[S.curLib]?.videos  || []); }
-      function activeFolders() { return S.curLib === null ? S.folders : (S.sharedLibs[S.curLib]?.folders || []); }
-      function isSharedView()  { return S.curLib !== null || S.readOnly; }
+      function activeVideos() {
+        return S.curLib === null
+          ? S.videos
+          : S.sharedLibs[S.curLib]?.videos || [];
+      }
+      function activeFolders() {
+        return S.curLib === null
+          ? S.folders
+          : S.sharedLibs[S.curLib]?.folders || [];
+      }
+      function isSharedView() {
+        return S.curLib !== null || S.readOnly;
+      }
 
       // ── ONGLETS AUTH ─────────────────────────────────────────
       function switchTab(tab) {
-        document.querySelectorAll('.auth-tab').forEach((el,i) => {
-          el.classList.toggle('active', ['login','register','code'][i] === tab);
+        document.querySelectorAll(".auth-tab").forEach((el, i) => {
+          el.classList.toggle(
+            "active",
+            ["login", "register", "code"][i] === tab,
+          );
         });
-        ['panelLogin','panelRegister','panelCode','panelNoFirebase'].forEach(id => {
-          document.getElementById(id).classList.remove('active');
-        });
-        const map = {login:'panelLogin', register:'panelRegister', code:'panelCode'};
-        document.getElementById(map[tab]).classList.add('active');
-        document.getElementById('authErr').textContent = '';
+        ["panelLogin", "panelRegister", "panelCode", "panelNoFirebase"].forEach(
+          (id) => {
+            document.getElementById(id).classList.remove("active");
+          },
+        );
+        const map = {
+          login: "panelLogin",
+          register: "panelRegister",
+          code: "panelCode",
+        };
+        document.getElementById(map[tab]).classList.add("active");
+        document.getElementById("authErr").textContent = "";
       }
 
       // ── AUTH ACTIONS ─────────────────────────────────────────
       async function doLogin() {
-        const email = gi('lEmail').value.trim();
-        const pw    = gi('lPw').value;
-        if (!email || !pw) { authErr('Email et mot de passe requis'); return; }
-        setBtn('btnLogin', true, 'Connexion…');
-        try { await window._FB.login(email, pw); }
-        catch(e) { authErr(fmtErr(e.code)); }
-        finally { setBtn('btnLogin', false, 'Se connecter'); }
+        const email = gi("lEmail").value.trim();
+        const pw = gi("lPw").value;
+        if (!email || !pw) {
+          authErr("Email et mot de passe requis");
+          return;
+        }
+        setBtn("btnLogin", true, "Connexion…");
+        try {
+          await window._FB.login(email, pw);
+        } catch (e) {
+          authErr(fmtErr(e.code));
+        } finally {
+          setBtn("btnLogin", false, "Se connecter");
+        }
       }
 
       async function doRegister() {
-        const email = gi('rEmail').value.trim();
-        const pw    = gi('rPw').value;
-        if (!email || !pw) { authErr('Champs requis'); return; }
-        if (pw.length < 6) { authErr('Mot de passe : 6 caractères minimum'); return; }
-        setBtn('btnRegister', true, 'Création…');
-        try { await window._FB.register(email, pw); }
-        catch(e) { authErr(fmtErr(e.code)); }
-        finally { setBtn('btnRegister', false, 'Créer mon compte'); }
+        const email = gi("rEmail").value.trim();
+        const pw = gi("rPw").value;
+        if (!email || !pw) {
+          authErr("Champs requis");
+          return;
+        }
+        if (pw.length < 6) {
+          authErr("Mot de passe : 6 caractères minimum");
+          return;
+        }
+        setBtn("btnRegister", true, "Création…");
+        try {
+          await window._FB.register(email, pw);
+        } catch (e) {
+          authErr(fmtErr(e.code));
+        } finally {
+          setBtn("btnRegister", false, "Créer mon compte");
+        }
       }
 
       async function doLogout() {
         await window._FB.logout();
-        Object.assign(S, {uid:null,email:null,username:null,readOnly:false,videos:[],folders:[],sharedLibs:[],
-          curLib:null,curFolder:null,editVid:null,moveVid:null,ctxVid:null});
+        Object.assign(S, {
+          uid: null,
+          email: null,
+          readOnly: false,
+          videos: [],
+          folders: [],
+          sharedLibs: [],
+          curLib: null,
+          curFolder: null,
+          editVid: null,
+          moveVid: null,
+          ctxVid: null,
+        });
         S.collapsed = new Set();
         showAuth();
       }
 
       async function accessCode() {
-        const code = gi('shareInput').value.trim().toUpperCase();
-        if (code.length !== 8) { authErr('Code invalide — 8 caractères requis'); return; }
+        const code = gi("shareInput").value.trim().toUpperCase();
+        if (code.length !== 8) {
+          authErr("Code invalide — 8 caractères requis");
+          return;
+        }
         try {
           const sc = await window._FB.getCode(code);
-          if (!sc) { authErr('Code introuvable ou révoqué.'); return; }
-          // Vérifier si le partage est public
-          if (sc.visibility === 'private') {
-            authErr('Ce partage est privé. Connectez-vous avec votre compte pour y accéder.');
+          if (!sc) {
+            authErr("Code introuvable ou révoqué.");
             return;
           }
-          S.uid      = null;
-          S.email    = null;
+          // Mode lecture seule sans compte :
+          // S.uid reste null (pas de compte propre), readOnly = true
+          S.uid = null;
+          S.email = null;
           S.readOnly = true;
           showApp();
           // Charger la bibliothèque partagée en mode "sole" (vue principale)
           await loadSharedLib(sc, code, true);
-          toast('Bibliothèque partagée chargée en lecture seule', 'info');
-        } catch(e) { authErr('Erreur : ' + e.message); }
+          toast("Bibliothèque partagée chargée en lecture seule", "info");
+        } catch (e) {
+          authErr("Erreur : " + e.message);
+        }
       }
 
-      function authErr(msg) { gi('authErr').textContent = msg; }
-      function setBtn(id, disabled, txt) { const b=gi(id); b.disabled=disabled; b.textContent=txt; }
+      function authErr(msg) {
+        gi("authErr").textContent = msg;
+      }
+      function setBtn(id, disabled, txt) {
+        const b = gi(id);
+        b.disabled = disabled;
+        b.textContent = txt;
+      }
       function fmtErr(code) {
-        return ({
-          'auth/invalid-email':        'Email invalide.',
-          'auth/user-not-found':       'Aucun compte avec cet email.',
-          'auth/wrong-password':       'Mot de passe incorrect.',
-          'auth/email-already-in-use': 'Cet email est déjà utilisé.',
-          'auth/weak-password':        'Mot de passe trop faible.',
-          'auth/invalid-credential':   'Email ou mot de passe incorrect.',
-          'auth/too-many-requests':    'Trop de tentatives. Réessayez plus tard.',
-        }[code]) || ('Erreur : ' + code);
+        return (
+          {
+            "auth/invalid-email": "Email invalide.",
+            "auth/user-not-found": "Aucun compte avec cet email.",
+            "auth/wrong-password": "Mot de passe incorrect.",
+            "auth/email-already-in-use": "Cet email est déjà utilisé.",
+            "auth/weak-password": "Mot de passe trop faible.",
+            "auth/invalid-credential": "Email ou mot de passe incorrect.",
+            "auth/too-many-requests":
+              "Trop de tentatives. Réessayez plus tard.",
+          }[code] || "Erreur : " + code
+        );
       }
 
       function showAuth() {
-        gi('authScreen').style.display = 'flex';
-        gi('appShell').classList.remove('on');
+        gi("authScreen").style.display = "flex";
+        gi("appShell").classList.remove("on");
       }
       function showApp() {
-        gi('authScreen').style.display = 'none';
-        gi('appShell').classList.add('on');
-        gi('btnHamburger').style.display = 'flex';
-        updateUserDisplay();
-        const writeOnly = ['btnAddVideo','btnAddFolder','btnShareHdr','btnAddCode',
-                           'mDrawerAddVideo','mDrawerAddFolder'];
-        writeOnly.forEach(id => { const el=gi(id); if(el) el.style.display = S.readOnly?'none':''; });
-      }
-
-      function updateUserDisplay() {
-        const el = gi('userEmail');
-        if (!el) return;
-        if (S.readOnly) { el.textContent = '👁 Lecture seule'; return; }
-        el.textContent = S.username || S.email || '—';
+        gi("authScreen").style.display = "none";
+        gi("appShell").classList.add("on");
+        // Email affiché dans le header
+        const emailEl = gi("userEmail");
+        if (emailEl) emailEl.textContent = S.email || "(sans compte)";
+        gi("btnHamburger").style.display = "flex";
+        // Masquer boutons non pertinents si mode lecture seule sans compte
+        const writeOnly = [
+          "btnAddVideo",
+          "btnAddFolder",
+          "btnShareHdr",
+          "btnAddCode",
+          "mDrawerAddVideo",
+          "mDrawerAddFolder",
+        ];
+        writeOnly.forEach((id) => {
+          const el = gi(id);
+          if (el) el.style.display = S.readOnly ? "none" : "";
+        });
       }
 
       // ── CHARGEMENT DONNÉES ───────────────────────────────────
@@ -2642,15 +2273,18 @@
             window._FB.getFolders(S.uid),
           ]);
           S.folders = fols;
-          S.videos  = vids;
-          buildTree(); renderGrid();
-        } catch(e) { toast('Erreur chargement : ' + e.message, 'err'); }
+          S.videos = vids;
+          buildTree();
+          renderGrid();
+        } catch (e) {
+          toast("Erreur chargement : " + e.message, "err");
+        }
         gridSpin(false);
       }
 
       // Charge une bibliothèque partagée et l'ajoute dans S.sharedLibs
       // asSole=true : mode sans compte (remplace la vue principale)
-      async function loadSharedLib(sc, code, asSole=false) {
+      async function loadSharedLib(sc, code, asSole = false) {
         gridSpin(true);
         try {
           const ownerUid = sc.ownerUid;
@@ -2660,111 +2294,151 @@
           ]);
           let filteredVids = vids;
           let filteredFols = fols;
-          if (sc.scope === 'folder') {
-            const ids = new Set([sc.folderId, ...descFolders(sc.folderId, fols)]);
-            filteredVids = vids.filter(v => ids.has(v.folderId||''));
-            filteredFols = fols.filter(f => ids.has(f.id));
+          if (sc.scope === "folder") {
+            const ids = new Set([
+              sc.folderId,
+              ...descFolders(sc.folderId, fols),
+            ]);
+            filteredVids = vids.filter((v) => ids.has(v.folderId || ""));
+            filteredFols = fols.filter((f) => ids.has(f.id));
           }
           if (asSole) {
             // Lecture seule sans compte : charge comme bibliothèque principale
             // S.uid n'est PAS modifié ici — il reste null
-            S.videos  = filteredVids;
+            S.videos = filteredVids;
             S.folders = filteredFols;
-            S.curLib  = null;
+            S.curLib = null;
           } else {
             // Avec compte : ajoute en section partagée
-            const label = sc.note || ('Partagé ' + code.substring(0,4));
+            const label = sc.note || "Partagé " + code.substring(0, 4);
             // Eviter doublon
-            if (S.sharedLibs.find(l => l.code === code)) {
-              toast('Ce code est déjà chargé', 'info'); gridSpin(false); return;
+            if (S.sharedLibs.find((l) => l.code === code)) {
+              toast("Ce code est déjà chargé", "info");
+              gridSpin(false);
+              return;
             }
-            S.sharedLibs.push({code, label, ownerUid, videos:filteredVids, folders:filteredFols, scope:sc.scope, folderId:sc.folderId||null});
+            S.sharedLibs.push({
+              code,
+              label,
+              ownerUid,
+              videos: filteredVids,
+              folders: filteredFols,
+              scope: sc.scope,
+              folderId: sc.folderId || null,
+            });
           }
-          buildTree(); renderGrid();
-        } catch(e) { toast('Erreur chargement partagé : ' + e.message, 'err'); }
+          buildTree();
+          renderGrid();
+        } catch (e) {
+          toast("Erreur chargement partagé : " + e.message, "err");
+        }
         gridSpin(false);
       }
 
       // Ajouter une bibliothèque partagée depuis l'app (modal)
       async function addSharedLibFromApp() {
-        const code = gi('inAppCodeInput').value.trim().toUpperCase();
-        const errEl = gi('inAppCodeErr');
-        errEl.textContent = '';
-        if (code.length !== 8) { errEl.textContent = 'Code invalide — 8 caractères'; return; }
-        const btn = gi('inAppCodeBtn'); btn.disabled=true; btn.textContent='…';
+        const code = gi("inAppCodeInput").value.trim().toUpperCase();
+        const errEl = gi("inAppCodeErr");
+        errEl.textContent = "";
+        if (code.length !== 8) {
+          errEl.textContent = "Code invalide — 8 caractères";
+          return;
+        }
+        const btn = gi("inAppCodeBtn");
+        btn.disabled = true;
+        btn.textContent = "…";
         try {
           const sc = await window._FB.getCode(code);
-          if (!sc) { errEl.textContent = 'Code introuvable ou révoqué.'; return; }
-          // Si privé, vérifier que l'utilisateur connecté est dans la liste d'accès
-          if (sc.visibility === 'private') {
-            const access = await window._FB.checkAccess(code, S.uid);
-            if (!access) { errEl.textContent = 'Accès refusé — vous n'êtes pas dans la liste autorisée.'; return; }
-            if (access.status === 'suspended') { errEl.textContent = 'Votre accès à ce partage est suspendu.'; return; }
+          if (!sc) {
+            errEl.textContent = "Code introuvable ou révoqué.";
+            return;
           }
           await loadSharedLib(sc, code, false);
-          closeModal('modalAccessCode');
-          gi('inAppCodeInput').value = '';
-          toast('Bibliothèque partagée ajoutée ✓', 'ok');
-        } catch(e) { errEl.textContent = 'Erreur : ' + e.message; }
-        btn.disabled=false; btn.textContent='Accéder';
+          closeModal("modalAccessCode");
+          gi("inAppCodeInput").value = "";
+          toast("Bibliothèque partagée ajoutée ✓", "ok");
+        } catch (e) {
+          errEl.textContent = "Erreur : " + e.message;
+        }
+        btn.disabled = false;
+        btn.textContent = "Accéder";
       }
 
       function removeSharedLib(idx) {
-        if (!confirm('Retirer cette bibliothèque partagée ?')) return;
+        if (!confirm("Retirer cette bibliothèque partagée ?")) return;
         S.sharedLibs.splice(idx, 1);
         if (S.curLib !== null && S.curLib >= S.sharedLibs.length) {
-          S.curLib = S.sharedLibs.length > 0 ? S.sharedLibs.length-1 : null;
+          S.curLib = S.sharedLibs.length > 0 ? S.sharedLibs.length - 1 : null;
         }
         S.curFolder = null;
-        buildTree(); updateBC(); renderGrid();
-        toast('Bibliothèque retirée', 'ok');
+        buildTree();
+        updateBC();
+        renderGrid();
+        toast("Bibliothèque retirée", "ok");
       }
 
       // ── ARBRE DE DOSSIERS ────────────────────────────────────
       function descFolders(pid, all) {
-        return all.filter(f => f.parentId === pid).flatMap(f => [f.id, ...descFolders(f.id, all)]);
+        return all
+          .filter((f) => f.parentId === pid)
+          .flatMap((f) => [f.id, ...descFolders(f.id, all)]);
       }
-      function folderDepth(id, all, d=0) {
-        const f = all.find(x => x.id === id);
+      function folderDepth(id, all, d = 0) {
+        const f = all.find((x) => x.id === id);
         if (!f || !f.parentId) return d;
-        return folderDepth(f.parentId, all, d+1);
+        return folderDepth(f.parentId, all, d + 1);
       }
 
       function buildTree() {
-        _buildTreeInto('tree');
-        _buildTreeInto('mobileTree');
+        _buildTreeInto("tree");
+        _buildTreeInto("mobileTree");
       }
 
       function _buildTreeInto(containerId) {
         const t = gi(containerId);
-        t.innerHTML = '';
+        t.innerHTML = "";
 
         // ── Section "Ma bibliothèque" ──
-        const secMine = document.createElement('div');
-        secMine.className = 'tree-section-hdr';
-        secMine.innerHTML = '<span>Ma bibliothèque</span><span class="tsh-line"></span>';
+        const secMine = document.createElement("div");
+        secMine.className = "tree-section-hdr";
+        secMine.innerHTML =
+          '<span>Ma bibliothèque</span><span class="tsh-line"></span>';
         t.appendChild(secMine);
 
         // Nœud racine ma biblio
         const myVids = S.videos.length;
-        t.appendChild(mkNode('Tout', null, myVids, 0, containerId, false, null));
+        t.appendChild(
+          mkNode("Tout", null, myVids, 0, containerId, false, null),
+        );
 
         // Dossiers de ma bibliothèque
         (function recurse(pid, container, lvl) {
           S.folders
-            .filter(f => (f.parentId||'') === (pid||''))
-            .sort((a,b) => (a.name||'').localeCompare(b.name||''))
-            .forEach(f => {
+            .filter((f) => (f.parentId || "") === (pid || ""))
+            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+            .forEach((f) => {
               const subIds = new Set([f.id, ...descFolders(f.id, S.folders)]);
-              const cnt    = S.videos.filter(v => subIds.has(v.folderId||'')).length;
-              const hasChildren = S.folders.some(x => x.parentId === f.id) && lvl < 2;
-              const node   = mkNode(f.name, f.id, cnt, lvl, containerId, hasChildren, null);
+              const cnt = S.videos.filter((v) =>
+                subIds.has(v.folderId || ""),
+              ).length;
+              const hasChildren =
+                S.folders.some((x) => x.parentId === f.id) && lvl < 2;
+              const node = mkNode(
+                f.name,
+                f.id,
+                cnt,
+                lvl,
+                containerId,
+                hasChildren,
+                null,
+              );
               container.appendChild(node);
               if (hasChildren) {
-                const sub = document.createElement('div');
-                sub.className = 'tree-children' + (S.collapsed.has(f.id) ? ' collapsed' : '');
-                sub.id = 'tc_'+containerId+'_'+f.id;
-                recurse(f.id, sub, lvl+1);
+                const sub = document.createElement("div");
+                sub.className =
+                  "tree-children" + (S.collapsed.has(f.id) ? " collapsed" : "");
+                sub.id = "tc_" + containerId + "_" + f.id;
+                recurse(f.id, sub, lvl + 1);
                 container.appendChild(sub);
               }
             });
@@ -2772,44 +2446,63 @@
 
         // ── Sections "Bibliothèques partagées" ──
         if (S.sharedLibs.length > 0) {
-          const secShared = document.createElement('div');
-          secShared.className = 'tree-section-hdr shared';
-          secShared.innerHTML = '<span>Partagées</span><span class="tsh-line"></span>';
+          const secShared = document.createElement("div");
+          secShared.className = "tree-section-hdr shared";
+          secShared.innerHTML =
+            '<span>Partagées</span><span class="tsh-line"></span>';
           t.appendChild(secShared);
 
           S.sharedLibs.forEach((lib, idx) => {
             // En-tête de la bibliothèque partagée
-            const hdr = document.createElement('div');
-            hdr.className = 'shared-lib-hdr' + (S.curLib === idx && S.curFolder === null ? ' active' : '');
+            const hdr = document.createElement("div");
+            hdr.className =
+              "shared-lib-hdr" +
+              (S.curLib === idx && S.curFolder === null ? " active" : "");
             hdr.innerHTML = `
-              <span style="font-size:.85rem;flex-shrink:0;">🔗</span>
-              <span class="sl-name" title="${esc(lib.label)}">${esc(lib.label)}</span>
-              <span class="sl-cnt">${lib.videos.length}</span>
-              <button class="sl-del" onclick="removeSharedLib(${idx})" title="Retirer">✕</button>
-            `;
-            hdr.addEventListener('click', e => {
-              if (e.target.closest('.sl-del')) return;
+        <span style="font-size:.85rem;flex-shrink:0;">🔗</span>
+        <span class="sl-name" title="${esc(lib.label)}">${esc(lib.label)}</span>
+        <span class="sl-cnt">${lib.videos.length}</span>
+        <button class="sl-del" onclick="removeSharedLib(${idx})" title="Retirer">✕</button>
+      `;
+            hdr.addEventListener("click", (e) => {
+              if (e.target.closest(".sl-del")) return;
               navShared(idx, null);
-              if (containerId === 'mobileTree') closeMobileNav();
+              if (containerId === "mobileTree") closeMobileNav();
             });
             t.appendChild(hdr);
 
             // Dossiers de la bibliothèque partagée
             (function recurseShared(pid, container, lvl) {
               lib.folders
-                .filter(f => (f.parentId||'') === (pid||''))
-                .sort((a,b) => (a.name||'').localeCompare(b.name||''))
-                .forEach(f => {
-                  const subIds = new Set([f.id, ...descFolders(f.id, lib.folders)]);
-                  const cnt    = lib.videos.filter(v => subIds.has(v.folderId||'')).length;
-                  const hasChildren = lib.folders.some(x => x.parentId === f.id) && lvl < 2;
-                  const node = mkNode(f.name, f.id, cnt, lvl, containerId, hasChildren, idx);
+                .filter((f) => (f.parentId || "") === (pid || ""))
+                .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+                .forEach((f) => {
+                  const subIds = new Set([
+                    f.id,
+                    ...descFolders(f.id, lib.folders),
+                  ]);
+                  const cnt = lib.videos.filter((v) =>
+                    subIds.has(v.folderId || ""),
+                  ).length;
+                  const hasChildren =
+                    lib.folders.some((x) => x.parentId === f.id) && lvl < 2;
+                  const node = mkNode(
+                    f.name,
+                    f.id,
+                    cnt,
+                    lvl,
+                    containerId,
+                    hasChildren,
+                    idx,
+                  );
                   container.appendChild(node);
                   if (hasChildren) {
-                    const sub = document.createElement('div');
-                    sub.className = 'tree-children' + (S.collapsed.has('s'+idx+f.id) ? ' collapsed' : '');
-                    sub.id = 'tc_'+containerId+'_s'+idx+f.id;
-                    recurseShared(f.id, sub, lvl+1);
+                    const sub = document.createElement("div");
+                    sub.className =
+                      "tree-children" +
+                      (S.collapsed.has("s" + idx + f.id) ? " collapsed" : "");
+                    sub.id = "tc_" + containerId + "_s" + idx + f.id;
+                    recurseShared(f.id, sub, lvl + 1);
                     container.appendChild(sub);
                   }
                 });
@@ -2819,26 +2512,30 @@
       }
 
       function mkNode(label, fid, cnt, lvl, containerId, hasChildren, libIdx) {
-        const isShared   = libIdx !== null;
-        const colKey     = isShared ? 's'+libIdx+(fid||'') : (fid||'');
-        const isActive   = S.curLib === libIdx && S.curFolder === fid;
-        const el = document.createElement('div');
-        el.className = 'tree-item' + (isActive ? ' active' : '') + (isShared ? ' shared-item' : '');
+        const isShared = libIdx !== null;
+        const colKey = isShared ? "s" + libIdx + (fid || "") : fid || "";
+        const isActive = S.curLib === libIdx && S.curFolder === fid;
+        const el = document.createElement("div");
+        el.className =
+          "tree-item" +
+          (isActive ? " active" : "") +
+          (isShared ? " shared-item" : "");
         const chevron = hasChildren
-          ? `<span class="ti-chevron ${S.collapsed.has(colKey)?'':'open'}" onclick="toggleCollapse(event,'${colKey}','${containerId}')">›</span>`
-          : '';
+          ? `<span class="ti-chevron ${S.collapsed.has(colKey) ? "" : "open"}" onclick="toggleCollapse(event,'${colKey}','${containerId}')">›</span>`
+          : "";
         el.innerHTML = `
-          ${chevron}
-          <span style="font-size:.9rem;flex-shrink:0;">${fid ? '📂' : '📁'}</span>
-          <span class="ti-label">${esc(label)}</span>
-          <span class="ti-count">${cnt}</span>
-          ${fid && !isShared ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ''}
-        `;
-        el.addEventListener('click', e => {
-          if (e.target.closest('.ti-btn') || e.target.closest('.ti-chevron')) return;
+    ${chevron}
+    <span style="font-size:.9rem;flex-shrink:0;">${fid ? "📂" : "📁"}</span>
+    <span class="ti-label">${esc(label)}</span>
+    <span class="ti-count">${cnt}</span>
+    ${fid && !isShared ? `<button class="ti-btn" onclick="folderMenu(event,'${fid}')" title="Options dossier">⋯</button>` : ""}
+  `;
+        el.addEventListener("click", (e) => {
+          if (e.target.closest(".ti-btn") || e.target.closest(".ti-chevron"))
+            return;
           if (isShared) navShared(libIdx, fid);
           else nav(fid);
-          if (containerId === 'mobileTree') closeMobileNav();
+          if (containerId === "mobileTree") closeMobileNav();
         });
         return el;
       }
@@ -2847,49 +2544,64 @@
         e.stopPropagation();
         if (S.collapsed.has(colKey)) S.collapsed.delete(colKey);
         else S.collapsed.add(colKey);
-        ['tree','mobileTree'].forEach(cid => {
-          const sub  = gi('tc_'+cid+'_'+colKey);
-          const chev = document.querySelector(`#${cid} .ti-chevron[onclick*="'${colKey}'"]`);
-          if (sub)  sub.classList.toggle('collapsed', S.collapsed.has(colKey));
-          if (chev) chev.classList.toggle('open', !S.collapsed.has(colKey));
+        ["tree", "mobileTree"].forEach((cid) => {
+          const sub = gi("tc_" + cid + "_" + colKey);
+          const chev = document.querySelector(
+            `#${cid} .ti-chevron[onclick*="'${colKey}'"]`,
+          );
+          if (sub) sub.classList.toggle("collapsed", S.collapsed.has(colKey));
+          if (chev) chev.classList.toggle("open", !S.collapsed.has(colKey));
         });
       }
 
       function nav(fid) {
-        S.curLib = null; S.curFolder = fid;
-        buildTree(); updateBC(); renderGrid();
+        S.curLib = null;
+        S.curFolder = fid;
+        buildTree();
+        updateBC();
+        renderGrid();
       }
       function navShared(libIdx, fid) {
-        S.curLib = libIdx; S.curFolder = fid;
-        buildTree(); updateBC(); renderGrid();
+        S.curLib = libIdx;
+        S.curFolder = fid;
+        buildTree();
+        updateBC();
+        renderGrid();
       }
 
       function updateBC() {
-        const bc   = gi('breadcrumb');
-        bc.innerHTML = '';
+        const bc = gi("breadcrumb");
+        bc.innerHTML = "";
         const fols = activeFolders();
-        const add  = (lbl, onclick) => {
-          const s = document.createElement('span');
-          s.className = 'bc'; s.textContent = lbl; s.onclick = onclick;
+        const add = (lbl, onclick) => {
+          const s = document.createElement("span");
+          s.className = "bc";
+          s.textContent = lbl;
+          s.onclick = onclick;
           bc.appendChild(s);
         };
         const addActive = (lbl) => {
-          const s = document.createElement('span');
-          s.className = 'bc bc-active'; s.textContent = lbl;
+          const s = document.createElement("span");
+          s.className = "bc bc-active";
+          s.textContent = lbl;
           bc.appendChild(s);
         };
-        const sep  = () => {
-          const s = document.createElement('span');
-          s.className = 'bc-sep'; s.textContent = ' / '; bc.appendChild(s);
+        const sep = () => {
+          const s = document.createElement("span");
+          s.className = "bc-sep";
+          s.textContent = " / ";
+          bc.appendChild(s);
         };
 
         if (S.curLib === null) {
           // Ma bibliothèque
-          if (!S.curFolder) { addActive('Bibliothèque'); }
-          else {
-            add('Bibliothèque', () => nav(null));
+          if (!S.curFolder) {
+            addActive("Bibliothèque");
+          } else {
+            add("Bibliothèque", () => nav(null));
             (function getPath(id) {
-              const f = fols.find(x => x.id === id); if (!f) return;
+              const f = fols.find((x) => x.id === id);
+              if (!f) return;
               if (f.parentId) getPath(f.parentId);
               sep();
               if (f.id === S.curFolder) addActive(f.name);
@@ -2899,13 +2611,17 @@
         } else {
           // Bibliothèque partagée
           const lib = S.sharedLibs[S.curLib];
-          add('Bibliothèque', () => nav(null));
+          add("Bibliothèque", () => nav(null));
           sep();
-          if (!S.curFolder) { addActive('🔗 ' + (lib?.label||'Partagée')); }
-          else {
-            add('🔗 ' + (lib?.label||'Partagée'), () => navShared(S.curLib, null));
+          if (!S.curFolder) {
+            addActive("🔗 " + (lib?.label || "Partagée"));
+          } else {
+            add("🔗 " + (lib?.label || "Partagée"), () =>
+              navShared(S.curLib, null),
+            );
             (function getPath(id) {
-              const f = fols.find(x => x.id === id); if (!f) return;
+              const f = fols.find((x) => x.id === id);
+              if (!f) return;
               if (f.parentId) getPath(f.parentId);
               sep();
               if (f.id === S.curFolder) addActive(f.name);
@@ -2917,119 +2633,154 @@
 
       function folderMenu(e, fid) {
         e.stopPropagation();
-        const f = S.folders.find(x => x.id === fid); if (!f) return;
-        const action = prompt(`Dossier : "${f.name}"\n\nTapez un nouveau nom pour renommer,\nou tapez SUPPRIMER pour supprimer :`);
+        const f = S.folders.find((x) => x.id === fid);
+        if (!f) return;
+        const action = prompt(
+          `Dossier : "${f.name}"\n\nTapez un nouveau nom pour renommer,\nou tapez SUPPRIMER pour supprimer :`,
+        );
         if (action === null) return;
-        if (action.trim().toUpperCase() === 'SUPPRIMER') {
-          if (!confirm(`Supprimer "${f.name}" ? Les vidéos resteront à la racine.`)) return;
-          S.videos.filter(v => v.folderId === fid).forEach(v => {
-            window._FB.updateVideo(S.uid, v.id, {folderId:''});
-            v.folderId = '';
-          });
+        if (action.trim().toUpperCase() === "SUPPRIMER") {
+          if (
+            !confirm(
+              `Supprimer "${f.name}" ? Les vidéos resteront à la racine.`,
+            )
+          )
+            return;
+          S.videos
+            .filter((v) => v.folderId === fid)
+            .forEach((v) => {
+              window._FB.updateVideo(S.uid, v.id, { folderId: "" });
+              v.folderId = "";
+            });
           window._FB.deleteFolder(S.uid, fid);
-          S.folders = S.folders.filter(x => x.id !== fid);
+          S.folders = S.folders.filter((x) => x.id !== fid);
           if (S.curFolder === fid) S.curFolder = null;
-          buildTree(); renderGrid(); toast('Dossier supprimé', 'ok');
+          buildTree();
+          renderGrid();
+          toast("Dossier supprimé", "ok");
         } else if (action.trim()) {
-          window._FB.updateFolder(S.uid, fid, {name: action.trim()});
+          window._FB.updateFolder(S.uid, fid, { name: action.trim() });
           f.name = action.trim();
-          buildTree(); toast('Dossier renommé', 'ok');
+          buildTree();
+          toast("Dossier renommé", "ok");
         }
       }
 
       // ── GRILLE VIDÉOS ────────────────────────────────────────
       function renderGrid() {
-        const q    = gi('search').value.toLowerCase();
-        const sort = gi('sortSel').value;
-        const fid  = S.curFolder;
+        const q = gi("search").value.toLowerCase();
+        const sort = gi("sortSel").value;
+        const fid = S.curFolder;
         const vids = activeVideos();
         const fols = activeFolders();
 
         // Dossier courant + tous ses sous-dossiers (récursif)
-        const visibleFids = fid === null
-          ? null
-          : new Set([fid, ...descFolders(fid, fols)]);
+        const visibleFids =
+          fid === null ? null : new Set([fid, ...descFolders(fid, fols)]);
 
-        let list = vids.filter(vid => {
-          const inF = visibleFids === null || visibleFids.has(vid.folderId || '');
-          const mQ  = !q || (vid.title||'').toLowerCase().includes(q)
-                         || (vid.category||'').toLowerCase().includes(q)
-                         || (vid.notes||'').toLowerCase().includes(q);
+        let list = vids.filter((vid) => {
+          const inF =
+            visibleFids === null || visibleFids.has(vid.folderId || "");
+          const mQ =
+            !q ||
+            (vid.title || "").toLowerCase().includes(q) ||
+            (vid.category || "").toLowerCase().includes(q) ||
+            (vid.notes || "").toLowerCase().includes(q);
           return inF && mQ;
         });
 
-        list = [...list].sort((a,b) => {
-          if (sort==='addedDesc')  return ts(b.addedAt) - ts(a.addedAt);
-          if (sort==='addedAsc')   return ts(a.addedAt) - ts(b.addedAt);
-          if (sort==='pubDesc')    return ts(b.publishedAt) - ts(a.publishedAt);
-          if (sort==='pubAsc')     return ts(a.publishedAt) - ts(b.publishedAt);
-          if (sort==='titleAsc')   return (a.title||'').localeCompare(b.title||'');
-          if (sort==='titleDesc')  return (b.title||'').localeCompare(a.title||'');
+        list = [...list].sort((a, b) => {
+          if (sort === "addedDesc") return ts(b.addedAt) - ts(a.addedAt);
+          if (sort === "addedAsc") return ts(a.addedAt) - ts(b.addedAt);
+          if (sort === "pubDesc") return ts(b.publishedAt) - ts(a.publishedAt);
+          if (sort === "pubAsc") return ts(a.publishedAt) - ts(b.publishedAt);
+          if (sort === "titleAsc")
+            return (a.title || "").localeCompare(b.title || "");
+          if (sort === "titleDesc")
+            return (b.title || "").localeCompare(a.title || "");
           return 0;
         });
 
-        gi('cnt').textContent = list.length;
-        const grid = gi('grid');
-        [...grid.querySelectorAll('.card,.empty,.spin-wrap')].forEach(el => el.remove());
+        gi("cnt").textContent = list.length;
+        const grid = gi("grid");
+        [...grid.querySelectorAll(".card,.empty,.spin-wrap")].forEach((el) =>
+          el.remove(),
+        );
 
         if (!list.length) {
-          const el = document.createElement('div'); el.className='empty';
-          el.innerHTML=`<div class="empty-g">▶</div>
-            <div class="empty-t">${q ? 'Aucun résultat' : 'Vide'}</div>
-            <div class="empty-s">${q ? 'Modifiez la recherche.' : 'Ajoutez votre première vidéo avec "+ Vidéo".'}</div>`;
-          grid.appendChild(el); return;
+          const el = document.createElement("div");
+          el.className = "empty";
+          el.innerHTML = `<div class="empty-g">▶</div>
+      <div class="empty-t">${q ? "Aucun résultat" : "Vide"}</div>
+      <div class="empty-s">${q ? "Modifiez la recherche." : 'Ajoutez votre première vidéo avec "+ Vidéo".'}</div>`;
+          grid.appendChild(el);
+          return;
         }
 
         list.forEach((vid, i) => {
-          const c = document.createElement('div');
-          c.className='card'; c.style.animationDelay=`${i*28}ms`;
-          const dateLabel = sort.startsWith('pub') && vid.publishedAt
-            ? '📅 '+fmtDate(vid.publishedAt)
-            : '+ '+fmtTs(vid.addedAt);
-          c.innerHTML=`
-            <div class="thumb">
-              <img src="https://img.youtube.com/vi/${vid.ytId}/mqdefault.jpg" loading="lazy"
-                onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 320 180\'><rect width=\'320\' height=\'180\' fill=\'%230a0b10\'/><text x=\'160\' y=\'100\' text-anchor=\'middle\' fill=\'%231c1f2b\' font-size=\'48\' font-family=\'sans-serif\'>▶</text></svg>'" alt="">
-              <div class="play-ring"><div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
-              ${vid.category ? `<span class="cpill2">${esc(vid.category)}</span>` : ''}
-            </div>
-            <div class="card-body">
-              <div class="card-title" title="${esc(vid.title)}">${esc(vid.title)}</div>
-              <div class="card-foot">
-                <span class="card-date">${dateLabel}</span>
-                ${!isSharedView() ? `
-                <button class="ca" title="Modifier" onclick="openEditModal('${vid.id}',event)">
-                  <svg viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"/></svg>
-                </button>
-                <button class="ca" title="Plus…" onclick="openCtx('${vid.id}',event)">
-                  <svg viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-                </button>` : ''}
-              </div>
-            </div>`;
-          c.querySelector('.thumb').addEventListener('click', () => window.open(vid.url,'_blank','noopener'));
+          const c = document.createElement("div");
+          c.className = "card";
+          c.style.animationDelay = `${i * 28}ms`;
+          const dateLabel =
+            sort.startsWith("pub") && vid.publishedAt
+              ? "📅 " + fmtDate(vid.publishedAt)
+              : "+ " + fmtTs(vid.addedAt);
+          c.innerHTML = `
+      <div class="thumb">
+        <img src="https://img.youtube.com/vi/${vid.ytId}/mqdefault.jpg" loading="lazy"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 320 180\'><rect width=\'320\' height=\'180\' fill=\'%230a0b10\'/><text x=\'160\' y=\'100\' text-anchor=\'middle\' fill=\'%231c1f2b\' font-size=\'48\' font-family=\'sans-serif\'>▶</text></svg>'" alt="">
+        <div class="play-ring"><div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+        ${vid.category ? `<span class="cpill2">${esc(vid.category)}</span>` : ""}
+      </div>
+      <div class="card-body">
+        <div class="card-title" title="${esc(vid.title)}">${esc(vid.title)}</div>
+        <div class="card-foot">
+          <span class="card-date">${dateLabel}</span>
+          ${
+            !isSharedView()
+              ? `
+          <button class="ca" title="Modifier" onclick="openEditModal('${vid.id}',event)">
+            <svg viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5z"/></svg>
+          </button>
+          <button class="ca" title="Plus…" onclick="openCtx('${vid.id}',event)">
+            <svg viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
+          </button>`
+              : ""
+          }
+        </div>
+      </div>`;
+          c.querySelector(".thumb").addEventListener("click", () =>
+            window.open(vid.url, "_blank", "noopener"),
+          );
           grid.appendChild(c);
         });
       }
 
       // ── PRÉVISUALISATION MINIATURE ───────────────────────────
       function previewThumb() {
-        const ytId = extractYtId(gi('vmUrl').value);
-        const wrap = gi('thumbPreviewWrap');
-        if (ytId) { wrap.style.display='block'; gi('thumbPreview').src=`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`; }
-        else       { wrap.style.display='none'; }
+        const ytId = extractYtId(gi("vmUrl").value);
+        const wrap = gi("thumbPreviewWrap");
+        if (ytId) {
+          wrap.style.display = "block";
+          gi("thumbPreview").src =
+            `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        } else {
+          wrap.style.display = "none";
+        }
       }
 
       // ── MODAL VIDÉO ──────────────────────────────────────────
-      function fillFolderSel(selId, currentFid='') {
+      function fillFolderSel(selId, currentFid = "") {
         const sel = gi(selId);
         sel.innerHTML = '<option value="">— Racine —</option>';
         S.folders
-          .filter(f => folderDepth(f.id, S.folders) < 3)
-          .sort((a,b) => (a.name||'').localeCompare(b.name||''))
-          .forEach(f => {
+          .filter((f) => folderDepth(f.id, S.folders) < 3)
+          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          .forEach((f) => {
             const d = folderDepth(f.id, S.folders);
-            const o = document.createElement('option');
-            o.value = f.id; o.textContent = '\u3000'.repeat(d) + '📂 ' + f.name;
+            const o = document.createElement("option");
+            o.value = f.id;
+            o.textContent = "\u3000".repeat(d) + "📂 " + f.name;
             if (f.id === currentFid) o.selected = true;
             sel.appendChild(o);
           });
@@ -3037,540 +2788,513 @@
 
       function openVideoModal() {
         S.editVid = null;
-        gi('videoModalTitle').textContent = 'Nouvelle vidéo';
-        gi('vmSaveBtn').textContent = 'Enregistrer';
-        ['vmUrl','vmTitle','vmCat','vmNotes'].forEach(id => gi(id).value='');
-        gi('vmPub').value = '';
-        gi('thumbPreviewWrap').style.display = 'none';
-        fillFolderSel('vmFolder', S.curFolder||'');
-        openModal('modalVideo');
-        setTimeout(() => gi('vmUrl').focus(), 80);
+        gi("videoModalTitle").textContent = "Nouvelle vidéo";
+        gi("vmSaveBtn").textContent = "Enregistrer";
+        ["vmUrl", "vmTitle", "vmCat", "vmNotes"].forEach(
+          (id) => (gi(id).value = ""),
+        );
+        gi("vmPub").value = "";
+        gi("thumbPreviewWrap").style.display = "none";
+        fillFolderSel("vmFolder", S.curFolder || "");
+        openModal("modalVideo");
+        setTimeout(() => gi("vmUrl").focus(), 80);
       }
 
       function openEditModal(vidId, e) {
         if (e) e.stopPropagation();
-        const vid = S.videos.find(x => x.id === vidId); if (!vid) return;
+        const vid = S.videos.find((x) => x.id === vidId);
+        if (!vid) return;
         S.editVid = vidId;
-        gi('videoModalTitle').textContent = 'Modifier la vidéo';
-        gi('vmSaveBtn').textContent = 'Mettre à jour';
-        gi('vmUrl').value   = vid.url||'';
-        gi('vmTitle').value = vid.title||'';
-        gi('vmCat').value   = vid.category||'';
-        gi('vmNotes').value = vid.notes||'';
-        gi('vmPub').value   = vid.publishedAt ? String(vid.publishedAt).substring(0,10) : '';
-        fillFolderSel('vmFolder', vid.folderId||'');
+        gi("videoModalTitle").textContent = "Modifier la vidéo";
+        gi("vmSaveBtn").textContent = "Mettre à jour";
+        gi("vmUrl").value = vid.url || "";
+        gi("vmTitle").value = vid.title || "";
+        gi("vmCat").value = vid.category || "";
+        gi("vmNotes").value = vid.notes || "";
+        gi("vmPub").value = vid.publishedAt
+          ? String(vid.publishedAt).substring(0, 10)
+          : "";
+        fillFolderSel("vmFolder", vid.folderId || "");
         previewThumb();
-        openModal('modalVideo');
+        openModal("modalVideo");
       }
 
       async function saveVideo() {
-        const url   = gi('vmUrl').value.trim();
-        const title = gi('vmTitle').value.trim();
-        const cat   = gi('vmCat').value.trim();
-        const notes = gi('vmNotes').value.trim();
-        const pub   = gi('vmPub').value;
-        const fid   = gi('vmFolder').value;
-        const ytId  = extractYtId(url);
-        if (!url || !title) { toast('URL et titre requis', 'err'); return; }
-        if (!ytId) { toast('URL YouTube invalide', 'err'); return; }
+        const url = gi("vmUrl").value.trim();
+        const title = gi("vmTitle").value.trim();
+        const cat = gi("vmCat").value.trim();
+        const notes = gi("vmNotes").value.trim();
+        const pub = gi("vmPub").value;
+        const fid = gi("vmFolder").value;
+        const ytId = extractYtId(url);
+        if (!url || !title) {
+          toast("URL et titre requis", "err");
+          return;
+        }
+        if (!ytId) {
+          toast("URL YouTube invalide", "err");
+          return;
+        }
 
-        const btn = gi('vmSaveBtn');
-        btn.disabled = true; btn.textContent = '…';
-        const data = {url, ytId, title, category:cat, notes, folderId:fid, publishedAt:pub||null};
+        const btn = gi("vmSaveBtn");
+        btn.disabled = true;
+        btn.textContent = "…";
+        const data = {
+          url,
+          ytId,
+          title,
+          category: cat,
+          notes,
+          folderId: fid,
+          publishedAt: pub || null,
+        };
         try {
           if (S.editVid) {
             await window._FB.updateVideo(S.uid, S.editVid, data);
-            const idx = S.videos.findIndex(x => x.id === S.editVid);
-            if (idx !== -1) S.videos[idx] = {...S.videos[idx], ...data};
-            toast('Vidéo mise à jour ✓', 'ok');
+            const idx = S.videos.findIndex((x) => x.id === S.editVid);
+            if (idx !== -1) S.videos[idx] = { ...S.videos[idx], ...data };
+            toast("Vidéo mise à jour ✓", "ok");
           } else {
             const ref = await window._FB.addVideo(S.uid, data);
-            S.videos.unshift({id:ref.id, ...data, addedAt:new Date().toISOString()});
-            toast('Vidéo ajoutée ✓', 'ok');
+            S.videos.unshift({
+              id: ref.id,
+              ...data,
+              addedAt: new Date().toISOString(),
+            });
+            toast("Vidéo ajoutée ✓", "ok");
           }
-          buildTree(); renderGrid(); closeModal('modalVideo');
-        } catch(e) { toast('Erreur : '+e.message, 'err'); }
-        btn.disabled = false; btn.textContent = S.editVid ? 'Mettre à jour' : 'Enregistrer';
+          buildTree();
+          renderGrid();
+          closeModal("modalVideo");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
+        btn.disabled = false;
+        btn.textContent = S.editVid ? "Mettre à jour" : "Enregistrer";
       }
 
       async function deleteVideo(vidId) {
-        if (!confirm('Supprimer cette vidéo ?')) return;
+        if (!confirm("Supprimer cette vidéo ?")) return;
         try {
           await window._FB.deleteVideo(S.uid, vidId);
-          S.videos = S.videos.filter(x => x.id !== vidId);
-          buildTree(); renderGrid(); toast('Vidéo supprimée', 'ok');
-        } catch(e) { toast('Erreur : '+e.message, 'err'); }
+          S.videos = S.videos.filter((x) => x.id !== vidId);
+          buildTree();
+          renderGrid();
+          toast("Vidéo supprimée", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
       }
 
       // ── MODAL DOSSIER ────────────────────────────────────────
       function openFolderModal() {
-        gi('fmName').value = '';
-        fillFolderSel('fmParent', '');
-        [...gi('fmParent').options].forEach(o => {
+        gi("fmName").value = "";
+        fillFolderSel("fmParent", "");
+        [...gi("fmParent").options].forEach((o) => {
           if (o.value && folderDepth(o.value, S.folders) >= 2) {
-            o.disabled = true; o.textContent += ' (niveau max)';
+            o.disabled = true;
+            o.textContent += " (niveau max)";
           }
         });
-        openModal('modalFolder');
-        setTimeout(() => gi('fmName').focus(), 80);
+        openModal("modalFolder");
+        setTimeout(() => gi("fmName").focus(), 80);
       }
 
       async function saveFolder() {
-        const name = gi('fmName').value.trim();
-        const pid  = gi('fmParent').value;
-        if (!name) { toast('Nom requis', 'err'); return; }
-        if (pid && folderDepth(pid, S.folders) >= 2) { toast('Niveau maximum (3 niveaux)', 'err'); return; }
+        const name = gi("fmName").value.trim();
+        const pid = gi("fmParent").value;
+        if (!name) {
+          toast("Nom requis", "err");
+          return;
+        }
+        if (pid && folderDepth(pid, S.folders) >= 2) {
+          toast("Niveau maximum (3 niveaux)", "err");
+          return;
+        }
         try {
-          const ref = await window._FB.addFolder(S.uid, {name, parentId:pid});
-          S.folders.push({id:ref.id, name, parentId:pid});
-          buildTree(); closeModal('modalFolder'); toast('Dossier créé ✓', 'ok');
-        } catch(e) { toast('Erreur : '+e.message, 'err'); }
+          const ref = await window._FB.addFolder(S.uid, {
+            name,
+            parentId: pid,
+          });
+          S.folders.push({ id: ref.id, name, parentId: pid });
+          buildTree();
+          closeModal("modalFolder");
+          toast("Dossier créé ✓", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
       }
 
       // ── MODAL DÉPLACER ───────────────────────────────────────
       function openMoveModal(vidId) {
-        if (isSharedView()) { toast('Impossible de modifier une bibliothèque partagée', 'err'); return; }
+        if (isSharedView()) {
+          toast("Impossible de modifier une bibliothèque partagée", "err");
+          return;
+        }
         S.moveVid = vidId;
-        const vid = S.videos.find(x => x.id === vidId);
-        gi('movingLabel').textContent = vid?.title || '';
-        fillFolderSel('moveTarget', vid?.folderId||'');
-        openModal('modalMove');
+        const vid = S.videos.find((x) => x.id === vidId);
+        gi("movingLabel").textContent = vid?.title || "";
+        fillFolderSel("moveTarget", vid?.folderId || "");
+        openModal("modalMove");
       }
 
       async function confirmMove() {
-        const target = gi('moveTarget').value;
+        const target = gi("moveTarget").value;
         if (!S.moveVid) return;
         try {
-          await window._FB.updateVideo(S.uid, S.moveVid, {folderId:target});
-          const vid = S.videos.find(x => x.id === S.moveVid);
+          await window._FB.updateVideo(S.uid, S.moveVid, { folderId: target });
+          const vid = S.videos.find((x) => x.id === S.moveVid);
           if (vid) vid.folderId = target;
-          buildTree(); renderGrid(); closeModal('modalMove'); toast('Vidéo déplacée ✓', 'ok');
-        } catch(e) { toast('Erreur : '+e.message, 'err'); }
+          buildTree();
+          renderGrid();
+          closeModal("modalMove");
+          toast("Vidéo déplacée ✓", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
       }
 
       // ── CONTEXT MENU ─────────────────────────────────────────
       function openCtx(vidId, e) {
         e.stopPropagation();
         S.ctxVid = vidId;
-        const ctx = gi('ctx'); ctx.classList.add('on');
-        ctx.style.left = Math.min(e.clientX, window.innerWidth  - 180) + 'px';
-        ctx.style.top  = Math.min(e.clientY, window.innerHeight - 130) + 'px';
+        const ctx = gi("ctx");
+        ctx.classList.add("on");
+        ctx.style.left = Math.min(e.clientX, window.innerWidth - 180) + "px";
+        ctx.style.top = Math.min(e.clientY, window.innerHeight - 130) + "px";
       }
-      document.addEventListener('click', () => gi('ctx').classList.remove('on'));
+      document.addEventListener("click", () =>
+        gi("ctx").classList.remove("on"),
+      );
       function ctxDo(a) {
-        const id = S.ctxVid; if (!id) return;
-        if (a==='edit')   openEditModal(id);
-        if (a==='move')   openMoveModal(id);
-        if (a==='delete') deleteVideo(id);
+        const id = S.ctxVid;
+        if (!id) return;
+        if (a === "edit") openEditModal(id);
+        if (a === "move") openMoveModal(id);
+        if (a === "delete") deleteVideo(id);
       }
 
       // ── MODAL PARTAGE ────────────────────────────────────────
       function toggleShareFolder() {
-        gi('shareFolderWrap').style.display = gi('shareScope').value==='folder' ? 'block' : 'none';
+        gi("shareFolderWrap").style.display =
+          gi("shareScope").value === "folder" ? "block" : "none";
       }
 
       async function openShareModal() {
-        fillFolderSel('shareFolder','');
-        gi('newCodeWrap').style.display = 'none';
-        gi('shareNote').value = '';
-        gi('shareScope').value = 'all';
+        fillFolderSel("shareFolder", "");
+        gi("newCodeWrap").style.display = "none";
+        gi("shareNote").value = "";
+        gi("shareScope").value = "all";
         toggleShareFolder();
-        const list = gi('shareList');
-        list.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
-        openModal('modalShare');
+        const list = gi("shareList");
+        list.innerHTML =
+          '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
+        openModal("modalShare");
         try {
           const codes = await window._FB.getMyCodes(S.uid);
-          list.innerHTML = '';
+          list.innerHTML = "";
           if (!codes.length) {
-            list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun code actif</div>';
+            list.innerHTML =
+              '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun code actif</div>';
             return;
           }
-          codes.forEach(sc => {
-            const f   = S.folders.find(x => x.id===sc.folderId);
-            const row = document.createElement('div'); row.className='share-row';
-            row.innerHTML=`
-              <span class="sr-code">${sc.id}</span>
-              <span class="sr-scope">${sc.scope==='folder' ? '📂 '+(f?.name||'?') : '🌐 Tout'}</span>
-              ${sc.note ? `<span style="color:var(--muted);font-size:.68rem;">${esc(sc.note)}</span>` : ''}
-              <button class="sr-del" onclick="revokeCode('${sc.id}',this)" title="Révoquer">
-                <svg viewBox="0 0 16 16" style="width:12px;height:12px;fill:currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-              </button>`;
+          codes.forEach((sc) => {
+            const f = S.folders.find((x) => x.id === sc.folderId);
+            const row = document.createElement("div");
+            row.className = "share-row";
+            row.innerHTML = `
+        <span class="sr-code">${sc.id}</span>
+        <span class="sr-scope">${sc.scope === "folder" ? "📂 " + (f?.name || "?") : "🌐 Tout"}</span>
+        ${sc.note ? `<span style="color:var(--muted);font-size:.68rem;">${esc(sc.note)}</span>` : ""}
+        <button class="sr-del" onclick="revokeCode('${sc.id}',this)" title="Révoquer">
+          <svg viewBox="0 0 16 16" style="width:12px;height:12px;fill:currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+        </button>`;
             list.appendChild(row);
           });
-        } catch(e) { list.innerHTML='<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur chargement</div>'; }
+        } catch (e) {
+          list.innerHTML =
+            '<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur chargement</div>';
+        }
       }
 
       async function generateCode() {
-        const scope      = gi('shareScope').value;
-        const fid        = gi('shareFolder').value;
-        const note       = gi('shareNote').value.trim();
-        const visibility = gi('shareVisibility').value; // 'public' | 'private'
-        if (scope==='folder' && !fid) { toast('Choisissez un dossier', 'err'); return; }
+        const scope = gi("shareScope").value;
+        const fid = gi("shareFolder").value;
+        const note = gi("shareNote").value.trim();
+        if (scope === "folder" && !fid) {
+          toast("Choisissez un dossier", "err");
+          return;
+        }
         const code = mkCode(8);
-        const data = {ownerUid:S.uid, scope, note, visibility};
-        if (scope==='folder') data.folderId = fid;
+        const data = { ownerUid: S.uid, scope, note };
+        if (scope === "folder") data.folderId = fid;
         try {
           await window._FB.createCode(code, data);
-          gi('newCodeDisplay').textContent = code;
-          gi('newCodeWrap').style.display = 'block';
-          toast('Code créé — cliquez pour copier', 'ok');
-        } catch(e) { toast('Erreur : '+e.message, 'err'); }
+          gi("newCodeDisplay").textContent = code;
+          gi("newCodeWrap").style.display = "block";
+          toast("Code créé — cliquez pour copier", "ok");
+          openShareModal();
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
       }
 
       async function revokeCode(code, btn) {
-        if (!confirm('Révoquer ce code ?')) return;
+        if (!confirm("Révoquer ce code ?")) return;
         try {
           await window._FB.revokeCode(code);
-          btn.closest('.share-row').remove();
-          toast('Code révoqué', 'ok');
-        } catch(e) { toast('Erreur révocation', 'err'); }
+          btn.closest(".share-row").remove();
+          toast("Code révoqué", "ok");
+        } catch (e) {
+          toast("Erreur révocation", "err");
+        }
       }
 
       function copyCode(code) {
-        navigator.clipboard.writeText(code).then(() => toast('Code copié !', 'info'));
+        navigator.clipboard
+          .writeText(code)
+          .then(() => toast("Code copié !", "info"));
       }
 
       function mkCode(len) {
-        const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        return Array.from({length:len}, () => c[Math.floor(Math.random()*c.length)]).join('');
+        const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        return Array.from(
+          { length: len },
+          () => c[Math.floor(Math.random() * c.length)],
+        ).join("");
       }
 
       // ── EXPORT JSON ──────────────────────────────────────────
       function exportJSON() {
-        const data = {exportedAt:new Date().toISOString(), user:S.email, folders:S.folders, videos:S.videos};
-        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-        const a = document.createElement('a');
+        const data = {
+          exportedAt: new Date().toISOString(),
+          user: S.email,
+          folders: S.folders,
+          videos: S.videos,
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `videovault-${new Date().toISOString().substring(0,10)}.json`;
-        a.click(); toast('Export téléchargé ✓', 'ok');
+        a.download = `videovault-${new Date().toISOString().substring(0, 10)}.json`;
+        a.click();
+        toast("Export téléchargé ✓", "ok");
       }
 
       // ── IMPORT JSON ───────────────────────────────────────────
       let _importData = null;
 
-      gi('importFile') && gi('importFile').addEventListener('change', function() {
-        _importData = null;
-        gi('importBtn').disabled = true;
-        gi('importPreview').style.display = 'none';
-        const file = this.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-          try {
-            const data = JSON.parse(e.target.result);
-            const vids = data.videos || [];
-            const fols = data.folders || [];
-            // Dédoublonnage par URL
-            const existingUrls = new Set(S.videos.map(v => v.url));
-            const newVids = vids.filter(v => v.url && !existingUrls.has(v.url));
-            const existingFolNames = new Set(S.folders.map(f => f.name));
-            const newFols = fols.filter(f => f.name && !existingFolNames.has(f.name));
-            _importData = {newVids, newFols, allFols: fols};
-            gi('importPreview').style.display = 'block';
-            gi('importPreview').innerHTML =
-              `<b style="color:var(--text);">${newVids.length}</b> vidéo(s) à importer (${vids.length-newVids.length} doublon(s) ignoré(s))<br>` +
-              `<b style="color:var(--text);">${newFols.length}</b> dossier(s) à importer`;
-            gi('importBtn').disabled = newVids.length === 0 && newFols.length === 0;
-          } catch(err) {
-            gi('importPreview').style.display = 'block';
-            gi('importPreview').textContent = '❌ Fichier JSON invalide : ' + err.message;
-          }
-        };
-        reader.readAsText(file);
-      });
+      gi("importFile") &&
+        gi("importFile").addEventListener("change", function () {
+          _importData = null;
+          gi("importBtn").disabled = true;
+          gi("importPreview").style.display = "none";
+          const file = this.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              const vids = data.videos || [];
+              const fols = data.folders || [];
+              // Dédoublonnage par URL
+              const existingUrls = new Set(S.videos.map((v) => v.url));
+              const newVids = vids.filter(
+                (v) => v.url && !existingUrls.has(v.url),
+              );
+              const existingFolNames = new Set(S.folders.map((f) => f.name));
+              const newFols = fols.filter(
+                (f) => f.name && !existingFolNames.has(f.name),
+              );
+              _importData = { newVids, newFols, allFols: fols };
+              gi("importPreview").style.display = "block";
+              gi("importPreview").innerHTML =
+                `<b style="color:var(--text);">${newVids.length}</b> vidéo(s) à importer (${vids.length - newVids.length} doublon(s) ignoré(s))<br>` +
+                `<b style="color:var(--text);">${newFols.length}</b> dossier(s) à importer`;
+              gi("importBtn").disabled =
+                newVids.length === 0 && newFols.length === 0;
+            } catch (err) {
+              gi("importPreview").style.display = "block";
+              gi("importPreview").textContent =
+                "❌ Fichier JSON invalide : " + err.message;
+            }
+          };
+          reader.readAsText(file);
+        });
 
       async function doImport() {
         if (!_importData) return;
-        const btn = gi('importBtn'); btn.disabled=true; btn.textContent='Import…';
+        const btn = gi("importBtn");
+        btn.disabled = true;
+        btn.textContent = "Import…";
 
-        const {newVids, newFols, allFols} = _importData;
+        const { newVids, newFols, allFols } = _importData;
 
         // Map old folder IDs → new IDs
         const folderIdMap = {};
 
         // Import dossiers (racine d'abord, puis enfants)
-        const sorted = [...newFols].sort((a,b) => {
-          const da = allFols.find(x=>x.id===a.parentId) ? 1 : 0;
-          const db = allFols.find(x=>x.id===b.parentId) ? 1 : 0;
+        const sorted = [...newFols].sort((a, b) => {
+          const da = allFols.find((x) => x.id === a.parentId) ? 1 : 0;
+          const db = allFols.find((x) => x.id === b.parentId) ? 1 : 0;
           return da - db;
         });
 
         for (const f of sorted) {
-          const newParent = folderIdMap[f.parentId] || '';
+          const newParent = folderIdMap[f.parentId] || "";
           try {
-            const ref = await window._FB.addFolder(S.uid, {name:f.name, parentId:newParent});
+            const ref = await window._FB.addFolder(S.uid, {
+              name: f.name,
+              parentId: newParent,
+            });
             folderIdMap[f.id] = ref.id;
-            S.folders.push({id:ref.id, name:f.name, parentId:newParent});
-          } catch(e) { console.warn('Folder import error', e); }
+            S.folders.push({ id: ref.id, name: f.name, parentId: newParent });
+          } catch (e) {
+            console.warn("Folder import error", e);
+          }
         }
 
         // Import vidéos
         let imported = 0;
         for (const v of newVids) {
-          const newFid = folderIdMap[v.folderId] || v.folderId || '';
+          const newFid = folderIdMap[v.folderId] || v.folderId || "";
           const data = {
-            url: v.url, ytId: v.ytId||extractYtId(v.url)||'',
-            title: v.title||'Sans titre', category: v.category||'',
-            notes: v.notes||'', folderId: newFid,
-            publishedAt: v.publishedAt||null,
+            url: v.url,
+            ytId: v.ytId || extractYtId(v.url) || "",
+            title: v.title || "Sans titre",
+            category: v.category || "",
+            notes: v.notes || "",
+            folderId: newFid,
+            publishedAt: v.publishedAt || null,
           };
           try {
             const ref = await window._FB.addVideo(S.uid, data);
-            S.videos.unshift({id:ref.id, ...data, addedAt:new Date().toISOString()});
+            S.videos.unshift({
+              id: ref.id,
+              ...data,
+              addedAt: new Date().toISOString(),
+            });
             imported++;
-          } catch(e) { console.warn('Video import error', e); }
+          } catch (e) {
+            console.warn("Video import error", e);
+          }
         }
 
-        buildTree(); renderGrid();
-        closeModal('modalImport');
-        gi('importFile').value = '';
+        buildTree();
+        renderGrid();
+        closeModal("modalImport");
+        gi("importFile").value = "";
         _importData = null;
-        gi('importBtn').textContent = 'Importer';
-        toast(`${imported} vidéo(s) importée(s) ✓`, 'ok');
-      }
-
-      // ── PROFIL & COMPTE ─────────────────────────────────────────
-      function openProfileModal() {
-        gi('profUsername').value = S.username || '';
-        gi('profEmail').value    = S.email || '';
-        gi('deleteConfirmEmail').value = '';
-        switchProfileTab('info');
-        openModal('modalProfile');
-      }
-
-      function switchProfileTab(tab) {
-        ['info','security'].forEach(t => {
-          gi('profileTab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab ? 'block':'none';
-          gi('pt'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
-        });
-      }
-
-      async function saveProfile() {
-        const username = gi('profUsername').value.trim();
-        if (!username) { toast('Nom d'utilisateur requis', 'err'); return; }
-        try {
-          await window._FB.setProfile(S.uid, { username, email: S.email });
-          S.username = username;
-          updateUserDisplay();
-          closeModal('modalProfile');
-          toast('Profil mis à jour ✓', 'ok');
-        } catch(e) { toast('Erreur : ' + e.message, 'err'); }
-      }
-
-      async function deleteAccount() {
-        const confirm1 = gi('deleteConfirmEmail').value.trim();
-        if (confirm1 !== S.email) { toast('Email de confirmation incorrect', 'err'); return; }
-        if (!confirm('Dernière confirmation : supprimer définitivement votre compte et toutes vos données ?')) return;
-        try {
-          await window._FB.deleteAccount(S.uid);
-          await window._FB.deleteAuthUser(); // supprime le compte Firebase Auth
-          Object.assign(S, {uid:null,email:null,username:null,readOnly:false,
-            videos:[],folders:[],sharedLibs:[],curLib:null,curFolder:null});
-          S.collapsed = new Set();
-          closeModal('modalProfile');
-          toast('Compte supprimé définitivement', 'ok');
-          showAuth();
-        } catch(e) { toast('Erreur suppression : ' + e.message, 'err'); }
-      }
-
-      // ── PARTAGE AVANCÉ ───────────────────────────────────────────
-      function switchShareTab(tab) {
-        gi('shareTabCreate').style.display = tab==='create' ? 'block' : 'none';
-        gi('shareTabList').style.display   = tab==='list'   ? 'block' : 'none';
-        gi('stCreate').classList.toggle('active', tab==='create');
-        gi('stList').classList.toggle('active',   tab==='list');
-        if (tab === 'list') loadShareList();
-      }
-
-      function toggleShareVisibility() {
-        const priv = gi('shareVisibility').value === 'private';
-        gi('sharePublicInfo').style.display  = priv ? 'none'  : 'block';
-        gi('sharePrivateInfo').style.display = priv ? 'block' : 'none';
-      }
-
-      async function openShareModal() {
-        fillFolderSel('shareFolder','');
-        gi('newCodeWrap').style.display = 'none';
-        gi('shareNote').value = '';
-        gi('shareScope').value = 'all';
-        gi('shareVisibility').value = 'public';
-        toggleShareFolder();
-        toggleShareVisibility();
-        switchShareTab('create');
-        openModal('modalShare');
-      }
-
-      async function loadShareList() {
-        const list = gi('shareList');
-        list.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:8px;">Chargement…</div>';
-        try {
-          const codes = await window._FB.getMyCodes(S.uid);
-          list.innerHTML = '';
-          if (!codes.length) {
-            list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);padding:8px;">Aucun partage actif</div>';
-            return;
-          }
-          for (const sc of codes) {
-            const f      = S.folders.find(x => x.id === sc.folderId);
-            const isPriv = sc.visibility === 'private';
-            const row    = document.createElement('div');
-            row.className = 'sc-row';
-            let accessHtml = '';
-            if (isPriv) {
-              const accesses = await window._FB.getAccesses(sc.id);
-              const active = accesses.filter(a => a.status==='active').length;
-              const susp   = accesses.filter(a => a.status==='suspended').length;
-              accessHtml = `<div class="sc-row-sub">${active} actif(s)${susp?' · '+susp+' suspendu(s)':''} — <a href="#" onclick="openAccessModal('${sc.id}','${esc(sc.note||sc.id)}');return false;" style="color:var(--blue);">Gérer les accès</a></div>`;
-            }
-            row.innerHTML = `
-              <div class="sc-row-top">
-                <span class="sc-badge ${isPriv?'sc-priv':'sc-pub'}">${isPriv?'🔒 Privé':'🌐 Public'}</span>
-                <span class="sc-name">${esc(sc.note||'Sans nom')}</span>
-                <span class="sc-code" onclick="copyCode('${sc.id}')" title="Copier le code">${sc.id}</span>
-                <div class="sc-actions">
-                  <button class="btn btn-g btn-sm" onclick="copyCode('${sc.id}')" title="Copier">📋</button>
-                  <button class="btn btn-sm" style="background:rgba(230,57,70,.15);color:var(--accent);border:1px solid rgba(230,57,70,.3);" onclick="revokeCode('${sc.id}',this)">Révoquer</button>
-                </div>
-              </div>
-              <div class="sc-row-sub">${sc.scope==='folder'?'📂 '+(f?.name||'?'):'🌐 Toute la bibliothèque'}</div>
-              ${accessHtml}
-            `;
-            list.appendChild(row);
-          }
-        } catch(e) {
-          list.innerHTML = `<div style="color:var(--accent);font-size:.76rem;padding:8px;">Erreur : ${e.message}</div>`;
-        }
-      }
-
-      // ── GESTION ACCÈS PRIVÉS ─────────────────────────────────────
-      let _currentAccessCode = null;
-
-      async function openAccessModal(code, name) {
-        _currentAccessCode = code;
-        gi('accessModalTitle').textContent = 'Accès — ' + name;
-        gi('accessModalCode').textContent  = 'Code : ' + code;
-        gi('newAccessUid').value  = '';
-        gi('newAccessName').value = '';
-        openModal('modalAccess');
-        await refreshAccessList();
-      }
-
-      async function refreshAccessList() {
-        const list = gi('accessList');
-        list.innerHTML = '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
-        try {
-          const accesses = await window._FB.getAccesses(_currentAccessCode);
-          list.innerHTML = '';
-          if (!accesses.length) {
-            list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun utilisateur invité</div>';
-            return;
-          }
-          accesses.forEach(a => {
-            const active = a.status === 'active';
-            const row = document.createElement('div');
-            row.className = 'ac-row';
-            row.innerHTML = `
-              <span class="ac-name">${esc(a.name||a.uid||'Utilisateur')}<br><span style="font-size:.68rem;color:var(--muted);">${esc(a.uid||'')}</span></span>
-              <span class="ac-status ${active?'ac-active':'ac-suspended'}">${active?'✓ Actif':'⏸ Suspendu'}</span>
-              <button class="btn btn-g btn-sm" onclick="toggleAccess('${a.id}','${a.status}')">${active?'Suspendre':'Réactiver'}</button>
-              <button class="btn btn-sm" style="background:rgba(230,57,70,.12);color:var(--accent);border:1px solid rgba(230,57,70,.25);" onclick="removeAccess('${a.id}')">Révoquer</button>
-            `;
-            list.appendChild(row);
-          });
-        } catch(e) { list.innerHTML = `<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur</div>`; }
-      }
-
-      async function addAccess() {
-        const uid  = gi('newAccessUid').value.trim();
-        const name = gi('newAccessName').value.trim();
-        if (!uid) { toast('UID requis', 'err'); return; }
-        try {
-          await window._FB.addAccess(_currentAccessCode, { uid, name: name||uid });
-          gi('newAccessUid').value = ''; gi('newAccessName').value = '';
-          await refreshAccessList();
-          toast('Utilisateur invité ✓', 'ok');
-        } catch(e) { toast('Erreur : ' + e.message, 'err'); }
-      }
-
-      async function toggleAccess(id, currentStatus) {
-        const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-        try {
-          await window._FB.updateAccess(_currentAccessCode, id, { status: newStatus });
-          await refreshAccessList();
-          toast(newStatus==='active' ? 'Accès réactivé' : 'Accès suspendu', 'ok');
-        } catch(e) { toast('Erreur', 'err'); }
-      }
-
-      async function removeAccess(id) {
-        if (!confirm('Révoquer l'accès de cet utilisateur ?')) return;
-        try {
-          await window._FB.deleteAccess(_currentAccessCode, id);
-          await refreshAccessList();
-          toast('Accès révoqué', 'ok');
-        } catch(e) { toast('Erreur', 'err'); }
+        gi("importBtn").textContent = "Importer";
+        toast(`${imported} vidéo(s) importée(s) ✓`, "ok");
       }
 
       // ── MOBILE NAV ────────────────────────────────────────────
-      function toggleMobileNav() { gi('mobileNav').classList.toggle('on'); }
+      function toggleMobileNav() {
+        gi("mobileNav").classList.toggle("on");
+      }
       function closeMobileNav(e) {
-        if (!e || e.target === gi('mobileNav')) gi('mobileNav').classList.remove('on');
+        if (!e || e.target === gi("mobileNav"))
+          gi("mobileNav").classList.remove("on");
       }
 
       // ── MODALS ───────────────────────────────────────────────
-      function openModal(id)  { gi(id).classList.add('on'); }
-      function closeModal(id) { gi(id).classList.remove('on'); }
-      document.querySelectorAll('.overlay').forEach(ov => {
-        ov.addEventListener('click', e => { if (e.target===ov) ov.classList.remove('on'); });
+      function openModal(id) {
+        gi(id).classList.add("on");
+      }
+      function closeModal(id) {
+        gi(id).classList.remove("on");
+      }
+      document.querySelectorAll(".overlay").forEach((ov) => {
+        ov.addEventListener("click", (e) => {
+          if (e.target === ov) ov.classList.remove("on");
+        });
       });
 
       // ── UTILITAIRES ──────────────────────────────────────────
-      function gi(id) { return document.getElementById(id); }
-      function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+      function gi(id) {
+        return document.getElementById(id);
+      }
+      function esc(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
 
       function extractYtId(url) {
         try {
           const u = new URL(url);
-          if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('?')[0];
+          if (u.hostname.includes("youtu.be"))
+            return u.pathname.slice(1).split("?")[0];
           const m = u.pathname.match(/\/shorts\/([^/?]+)/);
           if (m) return m[1];
-          return u.searchParams.get('v') || null;
-        } catch { return null; }
+          return u.searchParams.get("v") || null;
+        } catch {
+          return null;
+        }
       }
 
       function ts(val) {
         if (!val) return 0;
-        if (typeof val==='object' && val.seconds) return val.seconds * 1000;
+        if (typeof val === "object" && val.seconds) return val.seconds * 1000;
         return new Date(val).getTime() || 0;
       }
       function fmtTs(val) {
-        if (!val) return '—';
-        if (typeof val==='object' && val.seconds) return fmtDate(new Date(val.seconds*1000).toISOString().substring(0,10));
-        return fmtDate(String(val).substring(0,10));
+        if (!val) return "—";
+        if (typeof val === "object" && val.seconds)
+          return fmtDate(
+            new Date(val.seconds * 1000).toISOString().substring(0, 10),
+          );
+        return fmtDate(String(val).substring(0, 10));
       }
       function fmtDate(iso) {
-        try { return new Date(iso).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
-        catch { return iso||'—'; }
+        try {
+          return new Date(iso).toLocaleDateString("fr-FR", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+        } catch {
+          return iso || "—";
+        }
       }
 
       function gridSpin(on) {
-        const g = gi('grid');
-        [...g.querySelectorAll('.spin-wrap')].forEach(el => el.remove());
-        if (on) { const el=document.createElement('div'); el.className='spin-wrap'; el.innerHTML='<div class="sp"></div><div class="sp"></div><div class="sp"></div>'; g.appendChild(el); }
+        const g = gi("grid");
+        [...g.querySelectorAll(".spin-wrap")].forEach((el) => el.remove());
+        if (on) {
+          const el = document.createElement("div");
+          el.className = "spin-wrap";
+          el.innerHTML =
+            '<div class="sp"></div><div class="sp"></div><div class="sp"></div>';
+          g.appendChild(el);
+        }
       }
 
       let _tt;
-      function toast(msg, type='ok') {
-        const el = gi('toast'); el.className=`toast ${type} on`;
-        gi('toastMsg').textContent = msg;
-        clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'), 3200);
+      function toast(msg, type = "ok") {
+        const el = gi("toast");
+        el.className = `toast ${type} on`;
+        gi("toastMsg").textContent = msg;
+        clearTimeout(_tt);
+        _tt = setTimeout(() => el.classList.remove("on"), 3200);
       }
 
       // ── RACCOURCIS CLAVIER ───────────────────────────────────
-      document.addEventListener('keydown', e => {
-        if (e.key==='Escape') {
-          document.querySelectorAll('.overlay.on').forEach(o=>o.classList.remove('on'));
-          gi('ctx').classList.remove('on');
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document
+            .querySelectorAll(".overlay.on")
+            .forEach((o) => o.classList.remove("on"));
+          gi("ctx").classList.remove("on");
         }
-        if ((e.ctrlKey||e.metaKey) && e.key==='k') { e.preventDefault(); gi('search').focus(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+          e.preventDefault();
+          gi("search").focus();
+        }
       });
     </script>
   </body>
