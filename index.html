@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VideoVault v2</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="favicon-192.png" />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap"
       rel="stylesheet"
@@ -711,6 +715,114 @@
         max-height: 180px;
         overflow-y: auto;
         margin-top: 8px;
+      }
+      .share-tab {
+        flex: 1;
+        padding: 7px 4px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.78rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .share-tab.active {
+        background: var(--accent);
+        color: #fff;
+      }
+      /* Ligne de partage étendue */
+      .sc-row {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        margin-bottom: 6px;
+      }
+      .sc-row-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sc-badge {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+      .sc-pub {
+        background: rgba(74, 222, 128, 0.15);
+        color: var(--green);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+      }
+      .sc-priv {
+        background: rgba(72, 149, 239, 0.15);
+        color: var(--blue);
+        border: 1px solid rgba(72, 149, 239, 0.25);
+      }
+      .sc-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .sc-code {
+        font-family: monospace;
+        font-size: 0.75rem;
+        color: var(--gold);
+        letter-spacing: 2px;
+        cursor: pointer;
+      }
+      .sc-code:hover {
+        text-decoration: underline;
+      }
+      .sc-actions {
+        display: flex;
+        gap: 5px;
+        flex-shrink: 0;
+      }
+      .sc-row-sub {
+        margin-top: 6px;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      /* Ligne d'accès utilisateur */
+      .ac-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+      }
+      .ac-name {
+        flex: 1;
+        font-size: 0.82rem;
+      }
+      .ac-status {
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .ac-active {
+        background: rgba(74, 222, 128, 0.15);
+        color: var(--green);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+      }
+      .ac-suspended {
+        background: rgba(244, 162, 97, 0.15);
+        color: var(--gold);
+        border: 1px solid rgba(244, 162, 97, 0.25);
       }
       .share-row {
         display: flex;
@@ -1423,6 +1535,19 @@
             <div class="dot" id="statusDot"></div>
             <span class="user-email" id="userEmail">—</span>
           </div>
+          <!-- Bouton profil -->
+          <button
+            class="btn-ic"
+            id="btnProfile"
+            onclick="openProfileModal()"
+            title="Mon compte"
+          >
+            <svg viewBox="0 0 16 16">
+              <path
+                d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"
+              />
+            </svg>
+          </button>
           <!-- Bouton code partagé — toujours visible quand connecté -->
           <button
             class="btn btn-g btn-sm"
@@ -1684,69 +1809,328 @@
 
     <!-- ══ MODAL PARTAGE ══ -->
     <div class="overlay" id="modalShare">
-      <div class="modal" style="width: 520px">
-        <div class="modal-t">Partage &amp; Codes</div>
-        <p
+      <div class="modal" style="width: 560px">
+        <div class="modal-t">Partage &amp; Permissions</div>
+
+        <!-- Onglets du modal -->
+        <div
           style="
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            line-height: 1.65;
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
           "
         >
-          Générez un code à 8 caractères pour partager votre bibliothèque (ou un
-          dossier) en lecture seule. La personne n'a pas besoin de compte.
-          Révoquez le code à tout moment.
-        </p>
-        <div class="mg mg2">
-          <div class="field">
-            <label>Portée</label>
-            <select id="shareScope" onchange="toggleShareFolder()">
-              <option value="all">Toute la bibliothèque</option>
-              <option value="folder">Un dossier précis</option>
-            </select>
-          </div>
-          <div class="field" id="shareFolderWrap" style="display: none">
-            <label>Dossier</label>
-            <select id="shareFolder"></select>
-          </div>
+          <button
+            class="share-tab active"
+            onclick="switchShareTab('create')"
+            id="stCreate"
+          >
+            Nouveau partage
+          </button>
+          <button
+            class="share-tab"
+            onclick="switchShareTab('list')"
+            id="stList"
+          >
+            Mes partages
+          </button>
         </div>
-        <div class="mg">
-          <div class="field">
-            <label>Note (optionnel)</label>
-            <input type="text" id="shareNote" placeholder="Ex : pour Marie" />
+
+        <!-- ── Onglet : Créer un partage ── -->
+        <div id="shareTabCreate">
+          <div class="mg mg2">
+            <div class="field">
+              <label>Portée</label>
+              <select id="shareScope" onchange="toggleShareFolder()">
+                <option value="all">Toute la bibliothèque</option>
+                <option value="folder">Un dossier précis</option>
+              </select>
+            </div>
+            <div class="field" id="shareFolderWrap" style="display: none">
+              <label>Dossier</label>
+              <select id="shareFolder"></select>
+            </div>
           </div>
-        </div>
-        <button class="btn btn-p" onclick="generateCode()">
-          Générer un code
-        </button>
-        <div id="newCodeWrap" style="display: none">
+          <div class="mg mg2">
+            <div class="field">
+              <label>Visibilité</label>
+              <select id="shareVisibility" onchange="toggleShareVisibility()">
+                <option value="public">Public — sans compte requis</option>
+                <option value="private">
+                  Privé — liste blanche d'utilisateurs
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Nom du partage</label>
+              <input
+                type="text"
+                id="shareNote"
+                placeholder="Ex : Cours de violon"
+              />
+            </div>
+          </div>
           <div
-            class="code-box"
-            id="newCodeDisplay"
-            onclick="copyCode(this.textContent.trim())"
-          ></div>
-          <p style="font-size: 0.7rem; color: var(--muted); text-align: center">
-            Cliquez pour copier · Code à usage unique
-          </p>
-        </div>
-        <div style="margin-top: 1.2rem">
-          <div
+            id="sharePublicInfo"
             style="
-              font-size: 0.68rem;
-              font-weight: 600;
+              font-size: 0.76rem;
               color: var(--muted);
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              margin-bottom: 8px;
+              margin-bottom: 10px;
+              padding: 8px 10px;
+              background: var(--card);
+              border-radius: 7px;
+              border: 1px solid var(--border);
             "
           >
-            Codes actifs
+            🌐 <b style="color: var(--text)">Public</b> — Toute personne
+            disposant du code peut accéder sans créer de compte.
           </div>
-          <div class="share-list" id="shareList"></div>
+          <div
+            id="sharePrivateInfo"
+            style="
+              display: none;
+              font-size: 0.76rem;
+              color: var(--muted);
+              margin-bottom: 10px;
+              padding: 8px 10px;
+              background: var(--card);
+              border-radius: 7px;
+              border: 1px solid rgba(72, 149, 239, 0.3);
+            "
+          >
+            🔒 <b style="color: var(--blue)">Privé</b> — Seuls les utilisateurs
+            que vous invitez peuvent accéder. Vous gérez les permissions
+            individuellement.
+          </div>
+          <button class="btn btn-p" onclick="generateCode()">
+            Générer le code de partage
+          </button>
+          <div id="newCodeWrap" style="display: none; margin-top: 10px">
+            <div
+              class="code-box"
+              id="newCodeDisplay"
+              onclick="copyCode(this.textContent.trim())"
+            ></div>
+            <p
+              style="font-size: 0.7rem; color: var(--muted); text-align: center"
+            >
+              Cliquez pour copier
+            </p>
+          </div>
         </div>
+
+        <!-- ── Onglet : Liste des partages ── -->
+        <div id="shareTabList" style="display: none">
+          <div class="share-list" id="shareList" style="max-height: 360px">
+            <div style="font-size: 0.75rem; color: var(--muted); padding: 8px">
+              Chargement…
+            </div>
+          </div>
+        </div>
+
         <div class="ma" style="margin-top: 1rem">
           <button class="btn btn-g" onclick="closeModal('modalShare')">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL PROFIL & COMPTE ══ -->
+    <div class="overlay" id="modalProfile">
+      <div class="modal" style="width: 420px">
+        <div class="modal-t">Mon compte</div>
+
+        <div
+          style="
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+          "
+        >
+          <button
+            class="share-tab active"
+            onclick="switchProfileTab('info')"
+            id="ptInfo"
+          >
+            Informations
+          </button>
+          <button
+            class="share-tab"
+            onclick="switchProfileTab('security')"
+            id="ptSecurity"
+          >
+            Sécurité
+          </button>
+        </div>
+
+        <!-- Onglet Informations -->
+        <div id="profileTabInfo">
+          <div class="mg">
+            <div class="field">
+              <label>Nom d'utilisateur affiché</label>
+              <input
+                type="text"
+                id="profUsername"
+                placeholder="Ex : Jean-Pierre"
+                maxlength="32"
+              />
+              <div
+                style="font-size: 0.68rem; color: var(--muted); margin-top: 4px"
+              >
+                Affiché à la place de votre email dans l'application.
+              </div>
+            </div>
+            <div class="field">
+              <label>Email (lecture seule)</label>
+              <input
+                type="email"
+                id="profEmail"
+                disabled
+                style="opacity: 0.5; cursor: not-allowed"
+              />
+            </div>
+          </div>
+          <div class="ma">
+            <button class="btn btn-g" onclick="closeModal('modalProfile')">
+              Annuler
+            </button>
+            <button class="btn btn-p" onclick="saveProfile()">
+              Enregistrer
+            </button>
+          </div>
+        </div>
+
+        <!-- Onglet Sécurité -->
+        <div id="profileTabSecurity" style="display: none">
+          <div
+            style="
+              background: rgba(230, 57, 70, 0.08);
+              border: 1px solid rgba(230, 57, 70, 0.25);
+              border-radius: 8px;
+              padding: 12px 14px;
+              margin-bottom: 1rem;
+            "
+          >
+            <div
+              style="
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: var(--accent);
+                margin-bottom: 6px;
+              "
+            >
+              ⚠️ Zone dangereuse
+            </div>
+            <div
+              style="font-size: 0.78rem; color: var(--muted); line-height: 1.6"
+            >
+              La suppression de compte est
+              <b style="color: var(--text)">irréversible</b>. Toutes vos vidéos,
+              dossiers et codes de partage seront définitivement supprimés.
+            </div>
+          </div>
+          <div class="field" style="margin-bottom: 12px">
+            <label>Confirmez en tapant votre email</label>
+            <input
+              type="email"
+              id="deleteConfirmEmail"
+              placeholder="votre@email.com"
+            />
+          </div>
+          <button
+            class="btn"
+            style="
+              background: rgba(230, 57, 70, 0.15);
+              color: var(--accent);
+              border: 1px solid rgba(230, 57, 70, 0.3);
+              width: 100%;
+              justify-content: center;
+            "
+            onclick="deleteAccount()"
+          >
+            Supprimer définitivement mon compte
+          </button>
+          <div class="ma" style="margin-top: 10px">
+            <button class="btn btn-g" onclick="closeModal('modalProfile')">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL GESTION ACCÈS PRIVÉ ══ -->
+    <div class="overlay" id="modalAccess">
+      <div class="modal" style="width: 520px">
+        <div class="modal-t" id="accessModalTitle">Gérer les accès</div>
+        <p
+          style="font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem"
+          id="accessModalCode"
+        ></p>
+
+        <!-- Ajouter un utilisateur -->
+        <div
+          style="
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+          "
+        >
+          <div class="field" style="flex: 1; margin-bottom: 0">
+            <label>Inviter par code de partage reçu de l'utilisateur</label>
+            <input
+              type="text"
+              id="newAccessUid"
+              placeholder="UID ou email de l'utilisateur…"
+            />
+          </div>
+          <div class="field" style="margin-bottom: 0; flex-shrink: 0">
+            <label>Nom</label>
+            <input
+              type="text"
+              id="newAccessName"
+              placeholder="Prénom…"
+              style="width: 110px"
+            />
+          </div>
+          <button class="btn btn-b btn-sm" onclick="addAccess()">
+            Inviter
+          </button>
+        </div>
+
+        <div
+          style="
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+          "
+        >
+          Utilisateurs autorisés
+        </div>
+        <div
+          id="accessList"
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 240px;
+            overflow-y: auto;
+          "
+        ></div>
+
+        <div class="ma" style="margin-top: 1rem">
+          <button class="btn btn-g" onclick="closeModal('modalAccess')">
             Fermer
           </button>
         </div>
@@ -2008,6 +2392,8 @@
           login: (e, p) => signInWithEmailAndPassword(auth, e, p),
           register: (e, p) => createUserWithEmailAndPassword(auth, e, p),
           logout: () => signOut(auth),
+          deleteAuthUser: () =>
+            auth.currentUser ? auth.currentUser.delete() : Promise.resolve(),
 
           addFolder: (uid, d) =>
             addDoc(collection(db, `users/${uid}/folders`), {
@@ -2037,6 +2423,15 @@
             return s.docs.map((d) => ({ id: d.id, ...d.data() }));
           },
 
+          // ── PROFIL ──
+          getProfile: async (uid) => {
+            const d = await getDoc(doc(db, "profiles", uid));
+            return d.exists() ? d.data() : null;
+          },
+          setProfile: (uid, d) =>
+            setDoc(doc(db, "profiles", uid), d, { merge: true }),
+
+          // ── CODES DE PARTAGE ──
           createCode: (code, d) =>
             setDoc(doc(db, "shareCodes", code), {
               ...d,
@@ -2046,12 +2441,59 @@
             const d = await getDoc(doc(db, "shareCodes", code));
             return d.exists() ? { id: d.id, ...d.data() } : null;
           },
+          updateCode: (code, d) => updateDoc(doc(db, "shareCodes", code), d),
           revokeCode: (code) => deleteDoc(doc(db, "shareCodes", code)),
           getMyCodes: async (uid) => {
             const s = await getDocs(
               query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
             );
             return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+
+          // ── ACCÈS PRIVÉS (sous-collection de chaque code) ──
+          addAccess: (code, d) =>
+            addDoc(collection(db, `shareCodes/${code}/access`), {
+              ...d,
+              grantedAt: serverTimestamp(),
+              status: "active",
+            }),
+          getAccesses: async (code) => {
+            const s = await getDocs(
+              collection(db, `shareCodes/${code}/access`),
+            );
+            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+          updateAccess: (code, id, d) =>
+            updateDoc(doc(db, `shareCodes/${code}/access`, id), d),
+          deleteAccess: (code, id) =>
+            deleteDoc(doc(db, `shareCodes/${code}/access`, id)),
+          // Vérifier si un utilisateur a accès à un code privé
+          checkAccess: async (code, uid) => {
+            const s = await getDocs(
+              query(
+                collection(db, `shareCodes/${code}/access`),
+                where("uid", "==", uid),
+              ),
+            );
+            if (s.empty) return null;
+            const d = s.docs[0];
+            return { id: d.id, ...d.data() };
+          },
+
+          // ── SUPPRESSION DE COMPTE ──
+          deleteAccount: async (uid) => {
+            // Supprimer données Firestore (Firebase Auth user supprimé côté client)
+            const batch = [];
+            const vSnap = await getDocs(collection(db, `users/${uid}/videos`));
+            vSnap.docs.forEach((d) => batch.push(deleteDoc(d.ref)));
+            const fSnap = await getDocs(collection(db, `users/${uid}/folders`));
+            fSnap.docs.forEach((d) => batch.push(deleteDoc(d.ref)));
+            const cSnap = await getDocs(
+              query(collection(db, "shareCodes"), where("ownerUid", "==", uid)),
+            );
+            cSnap.docs.forEach((d) => batch.push(deleteDoc(d.ref)));
+            await Promise.all(batch);
+            await deleteDoc(doc(db, "profiles", uid));
           },
         };
 
@@ -2061,6 +2503,11 @@
             S.uid = user.uid;
             S.email = user.email;
             S.readOnly = false;
+            // Charger le profil (username)
+            window._FB.getProfile(user.uid).then((p) => {
+              S.username = p?.username || null;
+              updateUserDisplay();
+            });
             showApp();
             loadAll();
           } else if (!S.readOnly) {
@@ -2079,14 +2526,12 @@
       const S = {
         uid: null,
         email: null,
-        readOnly: false, // true = connecté via code seulement (sans compte)
-        // Ma bibliothèque
+        username: null,
+        readOnly: false,
         videos: [],
         folders: [],
-        // Bibliothèques partagées : [{code, label, ownerUid, videos, folders, scope, folderId}]
         sharedLibs: [],
-        // Navigation
-        curLib: null, // null = ma bibliothèque, sinon index dans sharedLibs
+        curLib: null,
         curFolder: null,
         editVid: null,
         moveVid: null,
@@ -2175,6 +2620,7 @@
         Object.assign(S, {
           uid: null,
           email: null,
+          username: null,
           readOnly: false,
           videos: [],
           folders: [],
@@ -2201,8 +2647,13 @@
             authErr("Code introuvable ou révoqué.");
             return;
           }
-          // Mode lecture seule sans compte :
-          // S.uid reste null (pas de compte propre), readOnly = true
+          // Vérifier si le partage est public
+          if (sc.visibility === "private") {
+            authErr(
+              "Ce partage est privé. Connectez-vous avec votre compte pour y accéder.",
+            );
+            return;
+          }
           S.uid = null;
           S.email = null;
           S.readOnly = true;
@@ -2245,11 +2696,8 @@
       function showApp() {
         gi("authScreen").style.display = "none";
         gi("appShell").classList.add("on");
-        // Email affiché dans le header
-        const emailEl = gi("userEmail");
-        if (emailEl) emailEl.textContent = S.email || "(sans compte)";
         gi("btnHamburger").style.display = "flex";
-        // Masquer boutons non pertinents si mode lecture seule sans compte
+        updateUserDisplay();
         const writeOnly = [
           "btnAddVideo",
           "btnAddFolder",
@@ -2262,6 +2710,16 @@
           const el = gi(id);
           if (el) el.style.display = S.readOnly ? "none" : "";
         });
+      }
+
+      function updateUserDisplay() {
+        const el = gi("userEmail");
+        if (!el) return;
+        if (S.readOnly) {
+          el.textContent = "👁 Lecture seule";
+          return;
+        }
+        el.textContent = S.username || S.email || "—";
       }
 
       // ── CHARGEMENT DONNÉES ───────────────────────────────────
@@ -2352,6 +2810,19 @@
           if (!sc) {
             errEl.textContent = "Code introuvable ou révoqué.";
             return;
+          }
+          // Si privé, vérifier que l'utilisateur connecté est dans la liste d'accès
+          if (sc.visibility === "private") {
+            const access = await window._FB.checkAccess(code, S.uid);
+            if (!access) {
+              errEl.textContent =
+                "Accès refusé — vous n'êtes pas dans la liste autorisée.";
+              return;
+            }
+            if (access.status === "suspended") {
+              errEl.textContent = "Votre accès à ce partage est suspendu.";
+              return;
+            }
           }
           await loadSharedLib(sc, code, false);
           closeModal("modalAccessCode");
@@ -3021,19 +3492,19 @@
         const scope = gi("shareScope").value;
         const fid = gi("shareFolder").value;
         const note = gi("shareNote").value.trim();
+        const visibility = gi("shareVisibility").value; // 'public' | 'private'
         if (scope === "folder" && !fid) {
           toast("Choisissez un dossier", "err");
           return;
         }
         const code = mkCode(8);
-        const data = { ownerUid: S.uid, scope, note };
+        const data = { ownerUid: S.uid, scope, note, visibility };
         if (scope === "folder") data.folderId = fid;
         try {
           await window._FB.createCode(code, data);
           gi("newCodeDisplay").textContent = code;
           gi("newCodeWrap").style.display = "block";
           toast("Code créé — cliquez pour copier", "ok");
-          openShareModal();
         } catch (e) {
           toast("Erreur : " + e.message, "err");
         }
@@ -3188,6 +3659,245 @@
         _importData = null;
         gi("importBtn").textContent = "Importer";
         toast(`${imported} vidéo(s) importée(s) ✓`, "ok");
+      }
+
+      // ── PROFIL & COMPTE ─────────────────────────────────────────
+      function openProfileModal() {
+        gi("profUsername").value = S.username || "";
+        gi("profEmail").value = S.email || "";
+        gi("deleteConfirmEmail").value = "";
+        switchProfileTab("info");
+        openModal("modalProfile");
+      }
+
+      function switchProfileTab(tab) {
+        ["info", "security"].forEach((t) => {
+          gi(
+            "profileTab" + t.charAt(0).toUpperCase() + t.slice(1),
+          ).style.display = t === tab ? "block" : "none";
+          gi("pt" + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle(
+            "active",
+            t === tab,
+          );
+        });
+      }
+
+      async function saveProfile() {
+        const username = gi("profUsername").value.trim();
+        if (!username) {
+          toast("Nom d'utilisateur requis", "err");
+          return;
+        }
+        try {
+          await window._FB.setProfile(S.uid, { username, email: S.email });
+          S.username = username;
+          updateUserDisplay();
+          closeModal("modalProfile");
+          toast("Profil mis à jour ✓", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
+      }
+
+      async function deleteAccount() {
+        const confirm1 = gi("deleteConfirmEmail").value.trim();
+        if (confirm1 !== S.email) {
+          toast("Email de confirmation incorrect", "err");
+          return;
+        }
+        if (
+          !confirm(
+            "Dernière confirmation : supprimer définitivement votre compte et toutes vos données ?",
+          )
+        )
+          return;
+        try {
+          await window._FB.deleteAccount(S.uid);
+          await window._FB.deleteAuthUser(); // supprime le compte Firebase Auth
+          Object.assign(S, {
+            uid: null,
+            email: null,
+            username: null,
+            readOnly: false,
+            videos: [],
+            folders: [],
+            sharedLibs: [],
+            curLib: null,
+            curFolder: null,
+          });
+          S.collapsed = new Set();
+          closeModal("modalProfile");
+          toast("Compte supprimé définitivement", "ok");
+          showAuth();
+        } catch (e) {
+          toast("Erreur suppression : " + e.message, "err");
+        }
+      }
+
+      // ── PARTAGE AVANCÉ ───────────────────────────────────────────
+      function switchShareTab(tab) {
+        gi("shareTabCreate").style.display =
+          tab === "create" ? "block" : "none";
+        gi("shareTabList").style.display = tab === "list" ? "block" : "none";
+        gi("stCreate").classList.toggle("active", tab === "create");
+        gi("stList").classList.toggle("active", tab === "list");
+        if (tab === "list") loadShareList();
+      }
+
+      function toggleShareVisibility() {
+        const priv = gi("shareVisibility").value === "private";
+        gi("sharePublicInfo").style.display = priv ? "none" : "block";
+        gi("sharePrivateInfo").style.display = priv ? "block" : "none";
+      }
+
+      async function openShareModal() {
+        fillFolderSel("shareFolder", "");
+        gi("newCodeWrap").style.display = "none";
+        gi("shareNote").value = "";
+        gi("shareScope").value = "all";
+        gi("shareVisibility").value = "public";
+        toggleShareFolder();
+        toggleShareVisibility();
+        switchShareTab("create");
+        openModal("modalShare");
+      }
+
+      async function loadShareList() {
+        const list = gi("shareList");
+        list.innerHTML =
+          '<div style="font-size:.75rem;color:var(--muted);padding:8px;">Chargement…</div>';
+        try {
+          const codes = await window._FB.getMyCodes(S.uid);
+          list.innerHTML = "";
+          if (!codes.length) {
+            list.innerHTML =
+              '<div style="font-size:.76rem;color:var(--muted);padding:8px;">Aucun partage actif</div>';
+            return;
+          }
+          for (const sc of codes) {
+            const f = S.folders.find((x) => x.id === sc.folderId);
+            const isPriv = sc.visibility === "private";
+            const row = document.createElement("div");
+            row.className = "sc-row";
+            let accessHtml = "";
+            if (isPriv) {
+              const accesses = await window._FB.getAccesses(sc.id);
+              const active = accesses.filter(
+                (a) => a.status === "active",
+              ).length;
+              const susp = accesses.filter(
+                (a) => a.status === "suspended",
+              ).length;
+              accessHtml = `<div class="sc-row-sub">${active} actif(s)${susp ? " · " + susp + " suspendu(s)" : ""} — <a href="#" onclick="openAccessModal('${sc.id}','${esc(sc.note || sc.id)}');return false;" style="color:var(--blue);">Gérer les accès</a></div>`;
+            }
+            row.innerHTML = `
+        <div class="sc-row-top">
+          <span class="sc-badge ${isPriv ? "sc-priv" : "sc-pub"}">${isPriv ? "🔒 Privé" : "🌐 Public"}</span>
+          <span class="sc-name">${esc(sc.note || "Sans nom")}</span>
+          <span class="sc-code" onclick="copyCode('${sc.id}')" title="Copier le code">${sc.id}</span>
+          <div class="sc-actions">
+            <button class="btn btn-g btn-sm" onclick="copyCode('${sc.id}')" title="Copier">📋</button>
+            <button class="btn btn-sm" style="background:rgba(230,57,70,.15);color:var(--accent);border:1px solid rgba(230,57,70,.3);" onclick="revokeCode('${sc.id}',this)">Révoquer</button>
+          </div>
+        </div>
+        <div class="sc-row-sub">${sc.scope === "folder" ? "📂 " + (f?.name || "?") : "🌐 Toute la bibliothèque"}</div>
+        ${accessHtml}
+      `;
+            list.appendChild(row);
+          }
+        } catch (e) {
+          list.innerHTML = `<div style="color:var(--accent);font-size:.76rem;padding:8px;">Erreur : ${e.message}</div>`;
+        }
+      }
+
+      // ── GESTION ACCÈS PRIVÉS ─────────────────────────────────────
+      let _currentAccessCode = null;
+
+      async function openAccessModal(code, name) {
+        _currentAccessCode = code;
+        gi("accessModalTitle").textContent = "Accès — " + name;
+        gi("accessModalCode").textContent = "Code : " + code;
+        gi("newAccessUid").value = "";
+        gi("newAccessName").value = "";
+        openModal("modalAccess");
+        await refreshAccessList();
+      }
+
+      async function refreshAccessList() {
+        const list = gi("accessList");
+        list.innerHTML =
+          '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
+        try {
+          const accesses = await window._FB.getAccesses(_currentAccessCode);
+          list.innerHTML = "";
+          if (!accesses.length) {
+            list.innerHTML =
+              '<div style="font-size:.76rem;color:var(--muted);padding:6px;">Aucun utilisateur invité</div>';
+            return;
+          }
+          accesses.forEach((a) => {
+            const active = a.status === "active";
+            const row = document.createElement("div");
+            row.className = "ac-row";
+            row.innerHTML = `
+        <span class="ac-name">${esc(a.name || a.uid || "Utilisateur")}<br><span style="font-size:.68rem;color:var(--muted);">${esc(a.uid || "")}</span></span>
+        <span class="ac-status ${active ? "ac-active" : "ac-suspended"}">${active ? "✓ Actif" : "⏸ Suspendu"}</span>
+        <button class="btn btn-g btn-sm" onclick="toggleAccess('${a.id}','${a.status}')">${active ? "Suspendre" : "Réactiver"}</button>
+        <button class="btn btn-sm" style="background:rgba(230,57,70,.12);color:var(--accent);border:1px solid rgba(230,57,70,.25);" onclick="removeAccess('${a.id}')">Révoquer</button>
+      `;
+            list.appendChild(row);
+          });
+        } catch (e) {
+          list.innerHTML = `<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur</div>`;
+        }
+      }
+
+      async function addAccess() {
+        const uid = gi("newAccessUid").value.trim();
+        const name = gi("newAccessName").value.trim();
+        if (!uid) {
+          toast("UID requis", "err");
+          return;
+        }
+        try {
+          await window._FB.addAccess(_currentAccessCode, {
+            uid,
+            name: name || uid,
+          });
+          gi("newAccessUid").value = "";
+          gi("newAccessName").value = "";
+          await refreshAccessList();
+          toast("Utilisateur invité ✓", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
+        }
+      }
+
+      async function toggleAccess(id, currentStatus) {
+        const newStatus = currentStatus === "active" ? "suspended" : "active";
+        try {
+          await window._FB.updateAccess(_currentAccessCode, id, {
+            status: newStatus,
+          });
+          await refreshAccessList();
+          toast(
+            newStatus === "active" ? "Accès réactivé" : "Accès suspendu",
+            "ok",
+          );
+        } catch (e) {
+          toast("Erreur", "err");
+        }
+      }
+
+      async function removeAccess(id) {
+        if (!confirm("Révoquer l'accès de cet utilisateur ?")) return;
+        try {
+          await window._FB.deleteAccess(_currentAccessCode, id);
+          await refreshAccessList();
+          toast("Accès révoqué", "ok");
+        } catch (e) {
+          toast("Erreur", "err");
+        }
       }
 
       // ── MOBILE NAV ────────────────────────────────────────────
