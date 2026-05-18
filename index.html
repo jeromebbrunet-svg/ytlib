@@ -2583,6 +2583,20 @@
             updateDoc(doc(db, `shareCodes/${code}/access`, id), d),
           deleteAccess: (code, id) =>
             deleteDoc(doc(db, `shareCodes/${code}/access`, id)),
+          // Enregistre une référence d'accès partagé dans le profil utilisateur (pour restauration au login)
+          addSharedAccess: (uid, shareCode) =>
+            setDoc(doc(db, `users/${uid}/sharedAccess`, shareCode), {
+              shareCode,
+              grantedAt: serverTimestamp(),
+            }),
+          // Récupère tous les shareCodes auxquels l'utilisateur a accès
+          getSharedAccesses: async (uid) => {
+            const s = await getDocs(collection(db, `users/${uid}/sharedAccess`));
+            return s.docs.map((d) => ({ id: d.id, ...d.data() }));
+          },
+          // Supprime la référence d'accès partagé côté utilisateur
+          removeSharedAccess: (uid, shareCode) =>
+            deleteDoc(doc(db, `users/${uid}/sharedAccess`, shareCode)),
           // Vérifier si un utilisateur (uid) a accès à un code privé
           checkAccess: async (code, uid) => {
             const s = await getDocs(
@@ -2916,6 +2930,29 @@
           toast("Erreur chargement : " + e.message, "err");
         }
         gridSpin(false);
+
+        // Restaurer les bibliothèques partagées auxquelles l'utilisateur a accès
+        try {
+          const sharedAccesses = await window._FB.getSharedAccesses(S.uid);
+          for (const sa of sharedAccesses) {
+            const shareCode = sa.shareCode || sa.id;
+            // Vérifier que l'accès est toujours actif côté propriétaire
+            const sc = await window._FB.getCode(shareCode);
+            if (!sc) {
+              // Le code a été révoqué — nettoyer la référence
+              await window._FB.removeSharedAccess(S.uid, shareCode);
+              continue;
+            }
+            const access = await window._FB.checkAccess(shareCode, S.uid);
+            if (!access || access.status === "suspended") continue;
+            // Éviter les doublons (déjà chargé)
+            if (S.sharedLibs.find((l) => l.code === shareCode)) continue;
+            await loadSharedLib(sc, shareCode, false);
+          }
+        } catch (e) {
+          // Silencieux — les bibliothèques partagées sont optionnelles
+          console.warn("Restauration des bibliothèques partagées :", e.message);
+        }
       }
 
       // Charge une bibliothèque partagée et l'ajoute dans S.sharedLibs
@@ -3081,6 +3118,8 @@
               btn.textContent = "Utiliser le code";
               return;
             }
+            // S'assurer que la référence est bien mémorisée pour la restauration au login
+            await window._FB.addSharedAccess(S.uid, shareCode);
             await loadSharedLib(sc, shareCode, false);
             closeModal("modalAccessCode");
             gi("inAppInviteInput").value = "";
@@ -3098,6 +3137,8 @@
             username,
             status: "active",
           });
+          // Mémoriser l'accès dans le profil utilisateur (restauration au login)
+          await window._FB.addSharedAccess(S.uid, shareCode);
           // Charger la bibliothèque
           await loadSharedLib(sc, shareCode, false);
           closeModal("modalAccessCode");
@@ -3112,6 +3153,11 @@
 
       function removeSharedLib(idx) {
         if (!confirm("Retirer cette bibliothèque partagée ?")) return;
+        const lib = S.sharedLibs[idx];
+        // Nettoyer la référence persistée (ne pas restaurer au prochain login)
+        if (lib && S.uid && lib.code) {
+          window._FB.removeSharedAccess(S.uid, lib.code).catch(() => {});
+        }
         S.sharedLibs.splice(idx, 1);
         if (S.curLib !== null && S.curLib >= S.sharedLibs.length) {
           S.curLib = S.sharedLibs.length > 0 ? S.sharedLibs.length - 1 : null;
