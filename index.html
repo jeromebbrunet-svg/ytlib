@@ -2171,6 +2171,34 @@
           ></div>
         </div>
 
+        <!-- Codes d'invitation en attente -->
+        <div id="pendingInvitesSection" style="margin-bottom: 1rem;">
+          <div
+            style="
+              font-size: 0.68rem;
+              font-weight: 600;
+              color: var(--muted);
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 8px;
+            "
+          >
+            🎟 Codes en attente (non utilisés)
+          </div>
+          <div
+            id="pendingInvitesList"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 5px;
+              max-height: 140px;
+              overflow-y: auto;
+            "
+          >
+            <div style="font-size:.75rem;color:var(--muted);padding:4px;">Chargement…</div>
+          </div>
+        </div>
+
         <!-- Liste utilisateurs autorisés -->
         <div
           style="
@@ -2190,7 +2218,7 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            max-height: 220px;
+            max-height: 180px;
             overflow-y: auto;
           "
         ></div>
@@ -4194,16 +4222,19 @@
             const visiBadge = `<span class="sc-badge ${isPrivate ? "sc-priv" : "sc-pub"}">${isPrivate ? "🔒 Privé" : "🌐 Public"}</span>`;
 
             // Badge statut
+            // Priorité : révoqué > suspendu par B lui-même > suspendu par A > actif
+            // La suspension locale (B) prend la priorité sur ownerSuspended pour
+            // éviter d'afficher "⛔ Inactif (propriétaire)" quand c'est B qui a mis en pause.
             let statusBadge, statusBorderColor;
             if (isRevoked) {
               statusBadge = `<span class="sc-badge" style="background:rgba(180,40,40,.15);color:#e63946;border-color:rgba(230,57,70,.3);">✕ Révoqué</span>`;
               statusBorderColor = "rgba(230,57,70,.5)";
-            } else if (ownerSuspended) {
-              statusBadge = `<span class="sc-badge" style="background:rgba(180,100,0,.15);color:#f4a261;border-color:rgba(244,162,97,.3);">⛔ Inactif (propriétaire)</span>`;
-              statusBorderColor = "rgba(244,162,97,.5)";
             } else if (localSuspended) {
               statusBadge = `<span class="sc-badge" style="background:rgba(230,57,70,.12);color:var(--accent);border-color:rgba(230,57,70,.3);">⏸ Suspendu</span>`;
               statusBorderColor = "rgba(230,57,70,.5)";
+            } else if (ownerSuspended) {
+              statusBadge = `<span class="sc-badge" style="background:rgba(180,100,0,.15);color:#f4a261;border-color:rgba(244,162,97,.3);">⛔ Inactif (propriétaire)</span>`;
+              statusBorderColor = "rgba(244,162,97,.5)";
             } else {
               statusBadge = `<span class="sc-badge sc-pub">✓ Actif</span>`;
               statusBorderColor = "rgba(74,222,128,.4)";
@@ -4222,11 +4253,12 @@
               }
             }
 
-            // Boutons — désactivés si révoqué par A
-            const canToggle = !isRevoked && !ownerSuspended;
+            // Boutons — B peut toujours mettre en pause/réactiver SAUF si révoqué
+            // Si A a suspendu, B peut toujours suspendre localement mais pas réactiver côté A
+            const canToggle = !isRevoked;
             const toggleBtn = canToggle
               ? `<button class="btn btn-g btn-sm" onclick="toggleAcquired('${shareCode}','${localSuspended ? "suspended" : "active"}')">${localSuspended ? "▶ Réactiver" : "⏸ Suspendre"}</button>`
-              : `<button class="btn btn-g btn-sm" disabled style="opacity:.4;" title="${isRevoked ? "Partage révoqué par le propriétaire" : "Accès suspendu par le propriétaire"}">${localSuspended ? "▶ Réactiver" : "⏸ Suspendre"}</button>`;
+              : `<button class="btn btn-g btn-sm" disabled style="opacity:.4;" title="Partage révoqué par le propriétaire">⏸ Suspendre</button>`;
 
             const row = document.createElement("div");
             row.className = "sc-row";
@@ -4258,14 +4290,12 @@
       async function toggleAcquired(shareCode, currentStatus) {
         const newStatus = currentStatus === "active" ? "suspended" : "active";
         try {
-          // 1. Mettre à jour le statut local (users/{B}/sharedAccess)
+          // 1. Mettre à jour le statut local uniquement (users/{B}/sharedAccess)
+          // Note : on ne touche PAS à shareCodes/{code}/access — c'est la vue de A.
+          // La suspension de B est une décision personnelle, elle ne doit pas
+          // apparaître comme une suspension côté propriétaire.
           await window._FB.updateSharedAccess(S.uid, shareCode, { status: newStatus });
-          // 2. Mettre à jour le statut dans shareCodes/{code}/access (visible côté A)
-          const myAccess = await window._FB.checkAccess(shareCode, S.uid);
-          if (myAccess) {
-            await window._FB.updateAccess(shareCode, myAccess.id, { status: newStatus });
-          }
-          // 3. Refléter dans S.sharedLibs
+          // 2. Refléter dans S.sharedLibs (en mémoire)
           if (newStatus === "suspended") {
             S.sharedLibs = S.sharedLibs.filter(l => l.code !== shareCode);
           } else {
@@ -4352,6 +4382,8 @@
         const list = gi("accessList");
         list.innerHTML =
           '<div style="font-size:.75rem;color:var(--muted);padding:6px;">Chargement…</div>';
+        // Rafraîchir aussi les codes en attente
+        await refreshInviteList();
         try {
           const accesses = await window._FB.getAccesses(_currentAccessCode);
           list.innerHTML = "";
@@ -4375,6 +4407,54 @@
           });
         } catch (e) {
           list.innerHTML = `<div style="color:var(--accent);font-size:.76rem;padding:6px;">Erreur</div>`;
+        }
+      }
+
+      async function refreshInviteList() {
+        const section = gi("pendingInvitesSection");
+        const list = gi("pendingInvitesList");
+        if (!list) return;
+        try {
+          const invites = await window._FB.getInvites(_currentAccessCode);
+          const pending = invites.filter(inv => !inv.used);
+          if (!pending.length) {
+            section.style.display = "none";
+            return;
+          }
+          section.style.display = "block";
+          list.innerHTML = "";
+          pending.forEach(inv => {
+            const fullCode = _currentAccessCode + inv.id;
+            const row = document.createElement("div");
+            row.style.cssText = "display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:7px;";
+            row.innerHTML = `
+              <span style="flex:1;font-family:monospace;font-size:.85rem;letter-spacing:2px;color:var(--gold);">${fullCode}</span>
+              <button class="btn btn-g btn-sm" onclick="copyInviteByCode('${fullCode}')" title="Copier">📋 Copier</button>
+              <button class="btn btn-sm" style="background:rgba(230,57,70,.12);color:var(--accent);border:1px solid rgba(230,57,70,.25);" onclick="deleteInvite('${inv.id}', this)" title="Supprimer">✕</button>
+            `;
+            list.appendChild(row);
+          });
+        } catch (e) {
+          section.style.display = "none";
+        }
+      }
+
+      function copyInviteByCode(fullCode) {
+        navigator.clipboard.writeText(fullCode).then(() => toast("Code copié !", "info"));
+      }
+
+      async function deleteInvite(suffix, btn) {
+        if (!confirm("Supprimer ce code d'invitation non utilisé ?")) return;
+        try {
+          await window._FB.deleteInvite(_currentAccessCode, suffix);
+          const row = btn.closest("div[style]");
+          if (row) row.remove();
+          // Vérifier s'il reste des invitations
+          const remaining = gi("pendingInvitesList").children.length;
+          if (!remaining) gi("pendingInvitesSection").style.display = "none";
+          toast("Code d'invitation supprimé", "ok");
+        } catch (e) {
+          toast("Erreur : " + e.message, "err");
         }
       }
 
