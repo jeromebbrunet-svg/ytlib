@@ -2973,7 +2973,7 @@
             window._FB.getVideos(S.uid),
             window._FB.getFolders(S.uid),
           ]);
-          S.folders = fols;
+          S.folders = sanitizeFolders(fols);
           S.videos = vids;
           buildTree();
           renderGrid();
@@ -3257,6 +3257,22 @@
       }
 
       // ── ARBRE DE DOSSIERS ────────────────────────────────────
+      // Nettoie les dossiers orphelins (parentId pointe vers un dossier inexistant)
+      // Supprime aussi les orphelins en cascade dans Firestore de manière silencieuse
+      function sanitizeFolders(fols) {
+        const ids = new Set(fols.map(f => f.id));
+        const valid = fols.filter(f => !f.parentId || ids.has(f.parentId));
+        // Supprimer silencieusement les orphelins dans Firestore
+        const orphans = fols.filter(f => f.parentId && !ids.has(f.parentId));
+        orphans.forEach(f => {
+          window._FB.deleteFolder(S.uid, f.id).catch(() => {});
+        });
+        if (orphans.length) {
+          console.warn(`[VideoVault] ${orphans.length} dossier(s) orphelin(s) supprimé(s) :`, orphans.map(f => f.name));
+        }
+        return valid;
+      }
+
       function descFolders(pid, all) {
         return all
           .filter((f) => f.parentId === pid)
@@ -3825,19 +3841,36 @@
         const fid = _editFolderId;
         const f = S.folders.find((x) => x.id === fid);
         if (!f) return;
-        if (!confirm(`Supprimer "${f.name}" ? Les vidéos resteront à la racine.`)) return;
+
+        // Calculer tous les descendants pour prévenir l'utilisateur
+        const descIds = descFolders(fid, S.folders);
+        const totalSub = descIds.length;
+        const confirmMsg = totalSub > 0
+          ? `Supprimer "${f.name}" et ses ${totalSub} sous-dossier(s) ?\nLes vidéos resteront à la racine.`
+          : `Supprimer "${f.name}" ? Les vidéos resteront à la racine.`;
+        if (!confirm(confirmMsg)) return;
+
         try {
-          S.videos.filter((v) => v.folderId === fid).forEach((v) => {
+          // Tous les IDs à supprimer : le dossier + ses descendants
+          const allIds = [fid, ...descIds];
+
+          // Remettre les vidéos des dossiers supprimés à la racine
+          S.videos.filter((v) => allIds.includes(v.folderId)).forEach((v) => {
             window._FB.updateVideo(S.uid, v.id, { folderId: "" });
             v.folderId = "";
           });
-          window._FB.deleteFolder(S.uid, fid);
-          S.folders = S.folders.filter((x) => x.id !== fid);
-          if (S.curFolder === fid) S.curFolder = null;
+
+          // Supprimer tous les dossiers dans Firestore
+          await Promise.all(allIds.map(id => window._FB.deleteFolder(S.uid, id)));
+
+          // Mettre à jour S.folders
+          S.folders = S.folders.filter((x) => !allIds.includes(x.id));
+          if (allIds.includes(S.curFolder)) S.curFolder = null;
+
           closeModal("modalFolder");
           buildTree();
           renderGrid();
-          toast("Dossier supprimé", "ok");
+          toast(totalSub > 0 ? `Dossier et ${totalSub} sous-dossier(s) supprimés` : "Dossier supprimé", "ok");
         } catch (e) { toast("Erreur : " + e.message, "err"); }
       }
 
