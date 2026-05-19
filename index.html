@@ -2946,15 +2946,19 @@
           const sharedAccesses = await window._FB.getSharedAccesses(S.uid);
           for (const sa of sharedAccesses) {
             const shareCode = sa.shareCode || sa.id;
-            // Vérifier que l'accès est toujours actif côté propriétaire
+            // Ne pas charger si B a suspendu localement
+            if (sa.status === "suspended") continue;
+            // Vérifier que le code existe toujours côté propriétaire
             const sc = await window._FB.getCode(shareCode);
             if (!sc) {
-              // Le code a été révoqué — nettoyer la référence
+              // Le code a été révoqué par A — nettoyer la référence locale
               await window._FB.removeSharedAccess(S.uid, shareCode);
               continue;
             }
+            // Vérifier le statut de B dans shareCodes/{code}/access (A peut avoir suspendu/révoqué)
             const access = await window._FB.checkAccess(shareCode, S.uid);
-            if (!access || access.status === "suspended") continue;
+            // Pour les partages publics, access peut ne pas exister — c'est normal
+            if (access && access.status === "suspended") continue;
             // Éviter les doublons (déjà chargé)
             if (S.sharedLibs.find((l) => l.code === shareCode)) continue;
             await loadSharedLib(sc, shareCode, false);
@@ -3063,6 +3067,23 @@
             return;
           }
           await loadSharedLib(sc, code, false);
+          // Mémoriser l'accès public dans le profil utilisateur (restauration + onglet Acquis)
+          if (S.uid) {
+            let ownerUsername = "?";
+            try {
+              const ownerProfile = await window._FB.getProfile(sc.ownerUid);
+              ownerUsername = ownerProfile?.username || ownerUsername;
+            } catch {}
+            await window._FB.addSharedAccess(S.uid, code, {
+              ownerUid: sc.ownerUid,
+              ownerUsername,
+              note: sc.note || "",
+              scope: sc.scope || "all",
+              folderId: sc.folderId || null,
+              visibility: "public",
+              status: "active",
+            });
+          }
           closeModal("modalAccessCode");
           gi("inAppCodeInput").value = "";
           toast("Bibliothèque partagée ajoutée ✓", "ok");
@@ -3133,6 +3154,7 @@
             note: sc.note || "",
             scope: sc.scope || "all",
             folderId: sc.folderId || null,
+            visibility: "private",
             status: "active",
           };
           if (existing) {
@@ -4148,36 +4170,74 @@
           }
           for (const sa of accesses) {
             const shareCode = sa.shareCode || sa.id;
-            const isSuspended = sa.status === "suspended";
-            // Résoudre le nom du dossier si scope=folder
-            let folderLabel = sa.scope === "folder" ? "📂 " : "🌐 Toute la bibliothèque";
+            // Vérifier le statut côté propriétaire (A peut avoir suspendu ou révoqué)
+            let ownerStatus = "active"; // par défaut
+            let codeStillExists = true;
+            try {
+              const sc = await window._FB.getCode(shareCode);
+              if (!sc) { codeStillExists = false; }
+              else {
+                // Chercher le statut de B dans shareCodes/{code}/access
+                const ownerAccess = await window._FB.checkAccess(shareCode, S.uid);
+                if (ownerAccess) ownerStatus = ownerAccess.status || "active";
+              }
+            } catch {}
+
+            // Statut effectif : suspendu si B a suspendu OU si A a suspendu/révoqué
+            const localSuspended = sa.status === "suspended";
+            const ownerSuspended = ownerStatus === "suspended";
+            const isRevoked = !codeStillExists;
+            const effectivelyInactive = localSuspended || ownerSuspended || isRevoked;
+
+            // Badge visibilité
+            const isPrivate = sa.visibility === "private";
+            const visiBadge = `<span class="sc-badge ${isPrivate ? "sc-priv" : "sc-pub"}">${isPrivate ? "🔒 Privé" : "🌐 Public"}</span>`;
+
+            // Badge statut
+            let statusBadge, statusBorderColor;
+            if (isRevoked) {
+              statusBadge = `<span class="sc-badge" style="background:rgba(180,40,40,.15);color:#e63946;border-color:rgba(230,57,70,.3);">✕ Révoqué</span>`;
+              statusBorderColor = "rgba(230,57,70,.5)";
+            } else if (ownerSuspended) {
+              statusBadge = `<span class="sc-badge" style="background:rgba(180,100,0,.15);color:#f4a261;border-color:rgba(244,162,97,.3);">⛔ Inactif (propriétaire)</span>`;
+              statusBorderColor = "rgba(244,162,97,.5)";
+            } else if (localSuspended) {
+              statusBadge = `<span class="sc-badge" style="background:rgba(230,57,70,.12);color:var(--accent);border-color:rgba(230,57,70,.3);">⏸ Suspendu</span>`;
+              statusBorderColor = "rgba(230,57,70,.5)";
+            } else {
+              statusBadge = `<span class="sc-badge sc-pub">✓ Actif</span>`;
+              statusBorderColor = "rgba(74,222,128,.4)";
+            }
+
+            // Résoudre le nom du dossier
+            let folderLabel = "🌐 Toute la bibliothèque";
             if (sa.scope === "folder" && sa.folderId) {
-              // Chercher dans les libs partagées chargées en mémoire
               const lib = S.sharedLibs.find(l => l.code === shareCode);
               if (lib) {
                 const f = lib.folders.find(f => f.id === sa.folderId);
                 folderLabel = "📂 " + (f?.name || sa.folderId);
-              } else {
+              } else if (sa.folderId) {
+                // Tenter de charger le nom depuis Firestore
                 folderLabel = "📂 " + sa.folderId;
               }
             }
+
+            // Boutons — désactivés si révoqué par A
+            const canToggle = !isRevoked && !ownerSuspended;
+            const toggleBtn = canToggle
+              ? `<button class="btn btn-g btn-sm" onclick="toggleAcquired('${shareCode}','${localSuspended ? "suspended" : "active"}')">${localSuspended ? "▶ Réactiver" : "⏸ Suspendre"}</button>`
+              : `<button class="btn btn-g btn-sm" disabled style="opacity:.4;" title="${isRevoked ? "Partage révoqué par le propriétaire" : "Accès suspendu par le propriétaire"}">${localSuspended ? "▶ Réactiver" : "⏸ Suspendre"}</button>`;
+
             const row = document.createElement("div");
             row.className = "sc-row";
-            row.style.borderLeft = isSuspended
-              ? "3px solid rgba(230,57,70,.5)"
-              : "3px solid rgba(74,222,128,.4)";
+            row.style.borderLeft = `3px solid ${statusBorderColor}`;
             row.innerHTML = `
               <div class="sc-row-top">
-                <span class="sc-badge ${isSuspended ? "sc-priv" : "sc-pub"}"
-                  style="${isSuspended ? "background:rgba(230,57,70,.12);color:var(--accent);border-color:rgba(230,57,70,.3);" : ""}">
-                  ${isSuspended ? "⏸ Suspendu" : "✓ Actif"}
-                </span>
+                ${visiBadge}
+                ${statusBadge}
                 <span class="sc-name">${esc(sa.note || "Partage")}</span>
                 <div class="sc-actions">
-                  <button class="btn btn-g btn-sm" onclick="toggleAcquired('${shareCode}','${isSuspended ? "suspended" : "active"}')"
-                    title="${isSuspended ? "Réactiver" : "Suspendre"}">
-                    ${isSuspended ? "▶ Réactiver" : "⏸ Suspendre"}
-                  </button>
+                  ${toggleBtn}
                   <button class="btn btn-sm" style="background:rgba(230,57,70,.12);color:var(--accent);border:1px solid rgba(230,57,70,.25);"
                     onclick="revokeAcquired('${shareCode}')">Révoquer</button>
                 </div>
@@ -4198,14 +4258,22 @@
       async function toggleAcquired(shareCode, currentStatus) {
         const newStatus = currentStatus === "active" ? "suspended" : "active";
         try {
+          // 1. Mettre à jour le statut local (users/{B}/sharedAccess)
           await window._FB.updateSharedAccess(S.uid, shareCode, { status: newStatus });
-          // Refléter dans S.sharedLibs (masquer ou réafficher dans la sidebar)
+          // 2. Mettre à jour le statut dans shareCodes/{code}/access (visible côté A)
+          const myAccess = await window._FB.checkAccess(shareCode, S.uid);
+          if (myAccess) {
+            await window._FB.updateAccess(shareCode, myAccess.id, { status: newStatus });
+          }
+          // 3. Refléter dans S.sharedLibs
           if (newStatus === "suspended") {
             S.sharedLibs = S.sharedLibs.filter(l => l.code !== shareCode);
           } else {
-            // Recharger la lib
+            // Recharger sans doublon — récupérer la lib depuis Firestore
             const sc = await window._FB.getCode(shareCode);
-            if (sc) await loadSharedLib(sc, shareCode, false);
+            if (sc && !S.sharedLibs.find(l => l.code === shareCode)) {
+              await loadSharedLib(sc, shareCode, false);
+            }
           }
           buildTree();
           renderGrid();
@@ -4219,7 +4287,14 @@
       async function revokeAcquired(shareCode) {
         if (!confirm("Révoquer ce partage acquis ?\n\nVous n'aurez plus accès à cette bibliothèque partagée.")) return;
         try {
+          // 1. Supprimer la référence locale (users/{B}/sharedAccess)
           await window._FB.removeSharedAccess(S.uid, shareCode);
+          // 2. Supprimer l'accès côté propriétaire (shareCodes/{code}/access) — visible côté A
+          const myAccess = await window._FB.checkAccess(shareCode, S.uid);
+          if (myAccess) {
+            await window._FB.deleteAccess(shareCode, myAccess.id);
+          }
+          // 3. Retirer de la mémoire
           S.sharedLibs = S.sharedLibs.filter(l => l.code !== shareCode);
           buildTree();
           renderGrid();
