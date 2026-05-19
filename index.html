@@ -211,6 +211,9 @@
         flex-shrink: 0;
       }
       .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-family: "Bebas Neue", sans-serif;
         font-size: 1.5rem;
         letter-spacing: 3px;
@@ -219,6 +222,12 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
         user-select: none;
+      }
+      .logo img {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        -webkit-text-fill-color: initial;
       }
       .hdr-r {
         display: flex;
@@ -1524,7 +1533,7 @@
               />
             </svg>
           </button>
-          <div class="logo">VideoVault</div>
+          <div class="logo"><img src="favicon.svg" alt="" aria-hidden="true">VideoVault</div>
           <span class="shared-badge" id="sharedBadge" style="display: none"
             >👁 Lecture seule</span
           >
