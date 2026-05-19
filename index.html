@@ -1757,10 +1757,10 @@
       </div>
     </div>
 
-    <!-- ══ MODAL DOSSIER ══ -->
+    <!-- ══ MODAL DOSSIER (création + édition) ══ -->
     <div class="overlay" id="modalFolder">
-      <div class="modal" style="width: 380px">
-        <div class="modal-t">Nouveau dossier</div>
+      <div class="modal" style="width: 400px">
+        <div class="modal-t" id="fmTitle">Nouveau dossier</div>
         <div class="mg">
           <div class="field">
             <label>Nom du dossier</label>
@@ -1772,20 +1772,24 @@
             />
           </div>
           <div class="field">
-            <label
-              >Dossier parent
-              <span style="color: var(--muted); font-size: 0.7rem"
-                >(optionnel, max 3 niveaux)</span
-              ></label
-            >
+            <label>Dossier parent
+              <span style="color: var(--muted); font-size: 0.7rem">(optionnel, max 3 niveaux)</span>
+            </label>
             <select id="fmParent"></select>
           </div>
         </div>
-        <div class="ma">
-          <button class="btn btn-g" onclick="closeModal('modalFolder')">
-            Annuler
+        <!-- Zone danger : suppression (visible seulement en mode édition) -->
+        <div id="fmDeleteZone" style="display:none; margin-bottom: 12px; padding: 10px 14px; background: rgba(230,57,70,.07); border: 1px solid rgba(230,57,70,.2); border-radius: 8px;">
+          <div style="font-size:.75rem; color:var(--muted); margin-bottom:8px; line-height:1.5;">
+            ⚠️ La suppression libère les vidéos du dossier (elles restent à la racine).
+          </div>
+          <button class="btn btn-sm" style="background:rgba(230,57,70,.15);color:var(--accent);border:1px solid rgba(230,57,70,.3);" onclick="deleteFolderFromModal()">
+            Supprimer ce dossier
           </button>
-          <button class="btn btn-p" onclick="saveFolder()">Créer</button>
+        </div>
+        <div class="ma">
+          <button class="btn btn-g" onclick="closeModal('modalFolder')">Annuler</button>
+          <button class="btn btn-p" id="fmSaveBtn" onclick="saveFolder()">Créer</button>
         </div>
       </div>
     </div>
@@ -3513,37 +3517,7 @@
 
       function folderMenu(e, fid) {
         e.stopPropagation();
-        const f = S.folders.find((x) => x.id === fid);
-        if (!f) return;
-        const action = prompt(
-          `Dossier : "${f.name}"\n\nTapez un nouveau nom pour renommer,\nou tapez SUPPRIMER pour supprimer :`,
-        );
-        if (action === null) return;
-        if (action.trim().toUpperCase() === "SUPPRIMER") {
-          if (
-            !confirm(
-              `Supprimer "${f.name}" ? Les vidéos resteront à la racine.`,
-            )
-          )
-            return;
-          S.videos
-            .filter((v) => v.folderId === fid)
-            .forEach((v) => {
-              window._FB.updateVideo(S.uid, v.id, { folderId: "" });
-              v.folderId = "";
-            });
-          window._FB.deleteFolder(S.uid, fid);
-          S.folders = S.folders.filter((x) => x.id !== fid);
-          if (S.curFolder === fid) S.curFolder = null;
-          buildTree();
-          renderGrid();
-          toast("Dossier supprimé", "ok");
-        } else if (action.trim()) {
-          window._FB.updateFolder(S.uid, fid, { name: action.trim() });
-          f.name = action.trim();
-          buildTree();
-          toast("Dossier renommé", "ok");
-        }
+        openFolderEditModal(fid);
       }
 
       // ── GRILLE VIDÉOS ────────────────────────────────────────
@@ -3767,8 +3741,14 @@
       }
 
       // ── MODAL DOSSIER ────────────────────────────────────────
+      let _editFolderId = null;
+
       function openFolderModal() {
+        _editFolderId = null;
+        gi("fmTitle").textContent = "Nouveau dossier";
+        gi("fmSaveBtn").textContent = "Créer";
         gi("fmName").value = "";
+        gi("fmDeleteZone").style.display = "none";
         fillFolderSel("fmParent", "");
         [...gi("fmParent").options].forEach((o) => {
           if (o.value && folderDepth(o.value, S.folders) >= 2) {
@@ -3780,29 +3760,85 @@
         setTimeout(() => gi("fmName").focus(), 80);
       }
 
+      function openFolderEditModal(fid) {
+        const f = S.folders.find((x) => x.id === fid);
+        if (!f) return;
+        _editFolderId = fid;
+        gi("fmTitle").textContent = "Modifier le dossier";
+        gi("fmSaveBtn").textContent = "Enregistrer";
+        gi("fmName").value = f.name || "";
+        gi("fmDeleteZone").style.display = "block";
+        // Exclure le dossier lui-même et ses descendants du sélecteur parent
+        const descendants = new Set(descFolders(fid, S.folders));
+        descendants.add(fid);
+        fillFolderSel("fmParent", f.parentId || "");
+        [...gi("fmParent").options].forEach((o) => {
+          if (o.value && descendants.has(o.value)) {
+            o.disabled = true;
+            o.textContent += " (boucle interdite)";
+          } else if (o.value && folderDepth(o.value, S.folders) >= 2) {
+            o.disabled = true;
+            o.textContent += " (niveau max)";
+          }
+        });
+        openModal("modalFolder");
+        setTimeout(() => gi("fmName").focus(), 80);
+      }
+
       async function saveFolder() {
         const name = gi("fmName").value.trim();
         const pid = gi("fmParent").value;
-        if (!name) {
-          toast("Nom requis", "err");
+        if (!name) { toast("Nom requis", "err"); return; }
+
+        // ── Édition ──
+        if (_editFolderId) {
+          const f = S.folders.find((x) => x.id === _editFolderId);
+          if (!f) return;
+          if (pid && pid !== f.parentId && folderDepth(pid, S.folders) >= 2) {
+            toast("Niveau maximum (3 niveaux)", "err"); return;
+          }
+          try {
+            await window._FB.updateFolder(S.uid, _editFolderId, { name, parentId: pid });
+            f.name = name;
+            f.parentId = pid;
+            buildTree();
+            closeModal("modalFolder");
+            toast("Dossier mis à jour ✓", "ok");
+          } catch (e) { toast("Erreur : " + e.message, "err"); }
           return;
         }
+
+        // ── Création ──
         if (pid && folderDepth(pid, S.folders) >= 2) {
-          toast("Niveau maximum (3 niveaux)", "err");
-          return;
+          toast("Niveau maximum (3 niveaux)", "err"); return;
         }
         try {
-          const ref = await window._FB.addFolder(S.uid, {
-            name,
-            parentId: pid,
-          });
+          const ref = await window._FB.addFolder(S.uid, { name, parentId: pid });
           S.folders.push({ id: ref.id, name, parentId: pid });
           buildTree();
           closeModal("modalFolder");
           toast("Dossier créé ✓", "ok");
-        } catch (e) {
-          toast("Erreur : " + e.message, "err");
-        }
+        } catch (e) { toast("Erreur : " + e.message, "err"); }
+      }
+
+      async function deleteFolderFromModal() {
+        const fid = _editFolderId;
+        const f = S.folders.find((x) => x.id === fid);
+        if (!f) return;
+        if (!confirm(`Supprimer "${f.name}" ? Les vidéos resteront à la racine.`)) return;
+        try {
+          S.videos.filter((v) => v.folderId === fid).forEach((v) => {
+            window._FB.updateVideo(S.uid, v.id, { folderId: "" });
+            v.folderId = "";
+          });
+          window._FB.deleteFolder(S.uid, fid);
+          S.folders = S.folders.filter((x) => x.id !== fid);
+          if (S.curFolder === fid) S.curFolder = null;
+          closeModal("modalFolder");
+          buildTree();
+          renderGrid();
+          toast("Dossier supprimé", "ok");
+        } catch (e) { toast("Erreur : " + e.message, "err"); }
       }
 
       // ── MODAL DÉPLACER ───────────────────────────────────────
